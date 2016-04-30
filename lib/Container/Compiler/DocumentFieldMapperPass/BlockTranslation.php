@@ -18,6 +18,6 @@ use EzSystems\EzPlatformSolrSearchEngine\Container\Compiler\BaseDocumentFieldMap
  */
 class BlockTranslation extends BaseDocumentFieldMapperPass
 {
-    const AGGREGATE_MAPPER_SERVICE_ID = 'ezpublish.search.solr.document_mapper.plugin.block_translation';
+    const AGGREGATE_MAPPER_SERVICE_ID = 'ezpublish.search.solr.document_field_mapper.block_translation';
     const AGGREGATE_MAPPER_SERVICE_TAG = self::AGGREGATE_MAPPER_SERVICE_ID;
 }

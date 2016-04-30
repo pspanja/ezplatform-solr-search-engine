@@ -16,7 +16,7 @@ use eZ\Publish\Core\Search\Common\FieldNameGenerator;
 use EzSystems\EzPlatformSolrSearchEngine\Query\QueryConverter;
 use EzSystems\EzPlatformSolrSearchEngine\FieldValueMapper;
 use RuntimeException;
-use XmlWriter;
+use XMLWriter;
 use eZ\Publish\SPI\Search\Field;
 use eZ\Publish\SPI\Search\Document;
 use eZ\Publish\SPI\Search\FieldType;
@@ -218,7 +218,7 @@ class Native extends Gateway
      *
      * Documents are given as an array of the array of documents. The array of documents
      * holds documents for all translations of the particular entity.
-     * 
+     *
      * Notes:
      * - Does not force a commit on solr, depends on solr config, use {@commit} if you need that.
      * - On large amounts of data make sure to iterate with several calls to this function with a limited
@@ -430,7 +430,7 @@ class Native extends Gateway
      */
     protected function createUpdates(array $documents)
     {
-        $xmlWriter = new XmlWriter();
+        $xmlWriter = new XMLWriter();
         $xmlWriter->openMemory();
         $xmlWriter->startElement('add');
 
@@ -451,7 +451,7 @@ class Native extends Gateway
         return $xmlWriter->outputMemory(true);
     }
 
-    protected function writeDocument(XmlWriter $xmlWriter, Document $document)
+    protected function writeDocument(XMLWriter $xmlWriter, Document $document)
     {
         $xmlWriter->startElement('doc');
 
@@ -505,7 +505,7 @@ class Native extends Gateway
         );
     }
 
-    protected function writeField(XmlWriter $xmlWriter, Field $field)
+    protected function writeField(XMLWriter $xmlWriter, Field $field)
     {
         foreach ((array)$this->fieldValueMapper->map($field) as $value) {
             $xmlWriter->startElement('field');

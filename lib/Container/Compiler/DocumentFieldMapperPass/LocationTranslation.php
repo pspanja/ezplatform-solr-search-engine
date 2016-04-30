@@ -18,6 +18,6 @@ use EzSystems\EzPlatformSolrSearchEngine\Container\Compiler\BaseDocumentFieldMap
  */
 class LocationTranslation extends BaseDocumentFieldMapperPass
 {
-    const AGGREGATE_MAPPER_SERVICE_ID = 'ezpublish.search.solr.document_mapper.plugin.location_translation';
+    const AGGREGATE_MAPPER_SERVICE_ID = 'ezpublish.search.solr.document_field_mapper.location_translation';
     const AGGREGATE_MAPPER_SERVICE_TAG = self::AGGREGATE_MAPPER_SERVICE_ID;
 }
