@@ -86,102 +86,102 @@ class ContentDocumentBaseFields extends ContentMapper
 
         return [
             new Field(
-                'content',
-                $contentInfo->id,
-                new FieldType\IdentifierField()
-            ),
-            new Field(
                 'document_type',
                 DocumentMapper::DOCUMENT_TYPE_IDENTIFIER_CONTENT,
                 new FieldType\IdentifierField()
             ),
             new Field(
-                'type',
+                'content_id',
+                $contentInfo->id,
+                new FieldType\IdentifierField()
+            ),
+            new Field(
+                'content_type_id',
                 $contentInfo->contentTypeId,
                 new FieldType\IdentifierField()
             ),
             new Field(
-                'version_no',
+                'content_version_no',
                 $versionInfo->versionNo,
                 new FieldType\IntegerField()
             ),
             new Field(
-                'status',
+                'content_version_status',
                 $versionInfo->status,
                 new FieldType\IdentifierField()
             ),
             new Field(
-                'name',
+                'content_name',
                 $contentInfo->name,
                 new FieldType\StringField()
             ),
             new Field(
-                'creator',
+                'content_version_creator_user_id',
                 $versionInfo->creatorId,
                 new FieldType\IdentifierField()
             ),
             new Field(
-                'owner',
+                'content_owner_user_id',
                 $contentInfo->ownerId,
                 new FieldType\IdentifierField()
             ),
             new Field(
-                'section',
+                'content_section_id',
                 $contentInfo->sectionId,
                 new FieldType\IdentifierField()
             ),
             new Field(
-                'remote_id',
+                'content_remote_id',
                 $contentInfo->remoteId,
                 new FieldType\IdentifierField()
             ),
             new Field(
-                'modified',
+                'content_modification_date',
                 $contentInfo->modificationDate,
                 new FieldType\DateField()
             ),
             new Field(
-                'published',
+                'content_publication_date',
                 $contentInfo->publicationDate,
                 new FieldType\DateField()
             ),
             new Field(
-                'language_code',
+                'content_language_codes',
                 array_keys($versionInfo->names),
                 new FieldType\MultipleStringField()
             ),
             new Field(
-                'main_language_code',
+                'content_main_language_code',
                 $contentInfo->mainLanguageCode,
                 new FieldType\StringField()
             ),
             new Field(
-                'always_available',
+                'content_always_available',
                 $contentInfo->alwaysAvailable,
                 new FieldType\BooleanField()
             ),
             new Field(
-                'owner_user_group',
+                'content_owner_user_group_ids',
                 $ancestorLocationsContentIds,
                 new FieldType\MultipleIdentifierField()
             ),
             new Field(
-                'section_identifier',
+                'content_section_identifier',
                 $section->identifier,
                 new FieldType\IdentifierField()
             ),
             new Field(
-                'section_name',
+                'content_section_name',
                 $section->name,
                 new FieldType\StringField()
             ),
             new Field(
-                'group',
+                'content_type_group_ids',
                 $this->contentTypeHandler->load($contentInfo->contentTypeId)->groupIds,
                 new FieldType\MultipleIdentifierField()
             ),
             new Field(
-                'object_state',
+                'content_object_state_ids',
                 $this->getObjectStateIds($contentInfo->id),
                 new FieldType\MultipleIdentifierField()
             ),

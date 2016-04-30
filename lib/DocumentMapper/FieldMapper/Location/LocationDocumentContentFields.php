@@ -102,7 +102,7 @@ class LocationDocumentContentFields extends LocationMapper
                 new FieldType\IdentifierField()
             ),
             new Field(
-                'content_type',
+                'content_type_id',
                 $contentInfo->contentTypeId,
                 new FieldType\IdentifierField()
             ),
@@ -112,7 +112,7 @@ class LocationDocumentContentFields extends LocationMapper
                 new FieldType\IntegerField()
             ),
             new Field(
-                'content_status',
+                'content_version_status',
                 $versionInfo->status,
                 new FieldType\IdentifierField()
             ),
@@ -122,17 +122,17 @@ class LocationDocumentContentFields extends LocationMapper
                 new FieldType\StringField()
             ),
             new Field(
-                'content_creator',
+                'content_version_creator_user_id',
                 $versionInfo->creatorId,
                 new FieldType\IdentifierField()
             ),
             new Field(
-                'content_owner',
+                'content_owner_user_id',
                 $contentInfo->ownerId,
                 new FieldType\IdentifierField()
             ),
             new Field(
-                'content_section',
+                'content_section_id',
                 $contentInfo->sectionId,
                 new FieldType\IdentifierField()
             ),
@@ -142,22 +142,22 @@ class LocationDocumentContentFields extends LocationMapper
                 new FieldType\IdentifierField()
             ),
             new Field(
-                'content_modified',
+                'content_modification_date',
                 $contentInfo->modificationDate,
                 new FieldType\DateField()
             ),
             new Field(
-                'content_published',
+                'content_publication_date',
                 $contentInfo->publicationDate,
                 new FieldType\DateField()
             ),
             new Field(
-                'language_code',
+                'content_language_codes',
                 array_keys($versionInfo->names),
                 new FieldType\MultipleStringField()
             ),
             new Field(
-                'main_language_code',
+                'content_main_language_code',
                 $contentInfo->mainLanguageCode,
                 new FieldType\StringField()
             ),
@@ -167,7 +167,7 @@ class LocationDocumentContentFields extends LocationMapper
                 new FieldType\BooleanField()
             ),
             new Field(
-                'content_owner_user_group',
+                'content_owner_user_group_ids',
                 $ancestorLocationsContentIds,
                 new FieldType\MultipleIdentifierField()
             ),
@@ -182,12 +182,12 @@ class LocationDocumentContentFields extends LocationMapper
                 new FieldType\StringField()
             ),
             new Field(
-                'content_group',
+                'content_type_group_ids',
                 $this->contentTypeHandler->load($contentInfo->contentTypeId)->groupIds,
                 new FieldType\MultipleIdentifierField()
             ),
             new Field(
-                'content_object_state',
+                'content_object_state_ids',
                 $this->getObjectStateIds($contentInfo->id),
                 new FieldType\MultipleIdentifierField()
             ),
