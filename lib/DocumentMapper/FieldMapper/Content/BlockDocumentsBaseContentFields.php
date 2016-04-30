@@ -8,28 +8,23 @@
  *
  * @version //autogentag//
  */
-namespace EzSystems\EzPlatformSolrSearchEngine\DocumentMapper\FieldMapper\Location;
+namespace EzSystems\EzPlatformSolrSearchEngine\DocumentMapper\FieldMapper\Content;
 
-use EzSystems\EzPlatformSolrSearchEngine\DocumentMapper\FieldMapper\Location as LocationMapper;
-use eZ\Publish\SPI\Persistence\Content\Handler as ContentHandler;
+use EzSystems\EzPlatformSolrSearchEngine\DocumentMapper\FieldMapper\Content as ContentMapper;
+use EzSystems\EzPlatformSolrSearchEngine\DocumentMapper;
 use eZ\Publish\SPI\Persistence\Content\Location\Handler as LocationHandler;
 use eZ\Publish\SPI\Persistence\Content\Type\Handler as ContentTypeHandler;
 use eZ\Publish\SPI\Persistence\Content\ObjectState\Handler as ObjectStateHandler;
 use eZ\Publish\SPI\Persistence\Content\Section\Handler as SectionHandler;
-use eZ\Publish\SPI\Persistence\Content\Location;
+use eZ\Publish\SPI\Persistence\Content;
 use eZ\Publish\SPI\Search\Field;
 use eZ\Publish\SPI\Search\FieldType;
 
 /**
- * Maps Content related fields to a Location document.
+ * Maps base Content related fields to block document (Content and Location).
  */
-class LocationDocumentContentFields extends LocationMapper
+class BlockDocumentsBaseContentFields extends ContentMapper
 {
-    /**
-     * @var \eZ\Publish\SPI\Persistence\Content\Handler
-     */
-    protected $contentHandler;
-
     /**
      * @var \eZ\Publish\SPI\Persistence\Content\Location\Handler
      */
@@ -51,38 +46,32 @@ class LocationDocumentContentFields extends LocationMapper
     protected $sectionHandler;
 
     /**
-     * @param \eZ\Publish\SPI\Persistence\Content\Handler $contentHandler
      * @param \eZ\Publish\SPI\Persistence\Content\Location\Handler $locationHandler
      * @param \eZ\Publish\SPI\Persistence\Content\Type\Handler $contentTypeHandler
      * @param \eZ\Publish\SPI\Persistence\Content\ObjectState\Handler $objectStateHandler
      * @param \eZ\Publish\SPI\Persistence\Content\Section\Handler $sectionHandler
      */
     public function __construct(
-        ContentHandler $contentHandler,
         LocationHandler $locationHandler,
         ContentTypeHandler $contentTypeHandler,
         ObjectStateHandler $objectStateHandler,
         SectionHandler $sectionHandler
     ) {
-        $this->contentHandler = $contentHandler;
         $this->locationHandler = $locationHandler;
         $this->contentTypeHandler = $contentTypeHandler;
         $this->objectStateHandler = $objectStateHandler;
         $this->sectionHandler = $sectionHandler;
     }
 
-    public function accept(Location $location)
+    public function accept(Content $content)
     {
         return true;
     }
 
-    public function mapFields(Location $location)
+    public function mapFields(Content $content)
     {
-        $contentInfo = $this->contentHandler->loadContentInfo($location->contentId);
-        $versionInfo = $this->contentHandler->loadVersionInfo(
-            $location->contentId,
-            $contentInfo->currentVersionNo
-        );
+        $versionInfo = $content->versionInfo;
+        $contentInfo = $content->versionInfo->contentInfo;
 
         // UserGroups and Users are Content, but permissions cascade is achieved through
         // Locations hierarchy. We index all ancestor Location Content ids of all
