@@ -59,7 +59,7 @@ class NativeQueryConverter extends QueryConverter
         $this->facetBuilderVisitor = $facetBuilderVisitor;
     }
 
-    public function convert(Query $query)
+    public function convert(Query $query, $searchTargets)
     {
         $params = array(
             'defType' => 'edismax',
@@ -70,6 +70,7 @@ class NativeQueryConverter extends QueryConverter
             'rows' => $query->limit,
             'fl' => '*,score,[shard]',
             'wt' => 'json',
+            'shards' => $searchTargets,
         );
 
         $facetParams = $this->getFacetParams($query->facetBuilders);

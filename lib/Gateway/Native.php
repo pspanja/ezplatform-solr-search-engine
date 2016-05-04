@@ -114,9 +114,10 @@ class Native extends Gateway
      */
     public function findContent(Query $query, array $languageSettings = array())
     {
-        $parameters = $this->contentQueryConverter->convert($query);
+        $searchTargets = $this->getSearchTargets($languageSettings);
+        $parameters = $this->contentQueryConverter->convert($query, $searchTargets);
 
-        return $this->internalFind($parameters, $languageSettings);
+        return $this->internalFind($parameters);
     }
 
     /**
@@ -130,27 +131,21 @@ class Native extends Gateway
      */
     public function findLocations(Query $query, array $languageSettings = array())
     {
-        $parameters = $this->locationQueryConverter->convert($query);
+        $searchTargets = $this->getSearchTargets($languageSettings);
+        $parameters = $this->locationQueryConverter->convert($query, $searchTargets);
 
-        return $this->internalFind($parameters, $languageSettings);
+        return $this->internalFind($parameters);
     }
 
     /**
      * Returns search hits for the given array of Solr query parameters.
      *
      * @param array $parameters
-     * @param array $languageSettings - a map of filters for the returned fields.
-     *        Currently supported: <code>array("languages" => array(<language1>,..))</code>.
      *
      * @return mixed
      */
-    protected function internalFind(array $parameters, array $languageSettings = array())
+    protected function internalFind(array $parameters)
     {
-        $searchTargets = $this->getSearchTargets($languageSettings);
-        if (!empty($searchTargets)) {
-            $parameters['shards'] = $searchTargets;
-        }
-
         $queryString = $this->generateQueryString($parameters);
 
         $response = $this->client->request(

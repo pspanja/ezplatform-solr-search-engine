@@ -21,8 +21,9 @@ abstract class QueryConverter
      * Map query to a proper Solr representation.
      *
      * @param \eZ\Publish\API\Repository\Values\Content\Query $query
+     * @param string $searchTargets
      *
      * @return array
      */
-    abstract public function convert(Query $query);
+    abstract public function convert(Query $query, $searchTargets);
 }
