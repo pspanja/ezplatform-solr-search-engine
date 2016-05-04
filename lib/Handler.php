@@ -248,14 +248,14 @@ class Handler implements SearchHandlerInterface
      */
     protected function getSearchTargets($languageSettings)
     {
-        $shards = array();
-        $endpoints = $this->endpointResolver->getSearchTargets($languageSettings);
+        $endpoints = array();
+        $endpointNames = $this->endpointResolver->getSearchTargets($languageSettings);
 
-        foreach ($endpoints as $endpoint) {
-            $shards[] = $this->endpointRegistry->getEndpoint($endpoint);
+        foreach ($endpointNames as $endpointName) {
+            $endpoints[] = $this->endpointRegistry->getEndpoint($endpointName);
         }
 
-        return $shards;
+        return $endpoints;
     }
 
     /**
