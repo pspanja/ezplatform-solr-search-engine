@@ -23,21 +23,31 @@ abstract class Gateway
      * Returns search hits for the given query.
      *
      * @param \eZ\Publish\API\Repository\Values\Content\Query $query
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Gateway\Endpoint $entryEndpoint
      * @param \EzSystems\EzPlatformSolrSearchEngine\Gateway\Endpoint[] $targetEndpoints
      *
      * @return mixed
      */
-    abstract public function findContent(Query $query, array $targetEndpoints);
+    abstract public function findContent(
+        Query $query,
+        Endpoint $entryEndpoint,
+        array $targetEndpoints
+    );
 
     /**
      * Returns search hits for the given query.
      *
      * @param \eZ\Publish\API\Repository\Values\Content\Query $query
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Gateway\Endpoint $entryEndpoint
      * @param \EzSystems\EzPlatformSolrSearchEngine\Gateway\Endpoint[] $targetEndpoints
      *
      * @return mixed
      */
-    abstract public function findLocations(Query $query, array $targetEndpoints);
+    abstract public function findLocations(
+        Query $query,
+        Endpoint $entryEndpoint,
+        array $targetEndpoints
+    );
 
     /**
      * Indexes an array of documents.
@@ -54,13 +64,16 @@ abstract class Gateway
      * Deletes documents by the given $query.
      *
      * @param string $query
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Gateway\Endpoint[] $endpoints
      */
-    abstract public function deleteByQuery($query);
+    abstract public function deleteByQuery($query, array $endpoints);
 
     /**
      * Purges all contents from the index.
+     *
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Gateway\Endpoint[] $endpoints
      */
-    abstract public function purgeIndex();
+    abstract public function purgeIndex(array $endpoints);
 
     /**
      * Commits the data to the Solr index, making it available for search.
@@ -69,7 +82,8 @@ abstract class Gateway
      * is actually written to the stable storage, it is only made available for search.
      * Passing true will also write the data to the safe storage, ensuring durability.
      *
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Gateway\Endpoint[] $endpoints
      * @param bool $flush
      */
-    abstract public function commit($flush = false);
+    abstract public function commit(array $endpoints, $flush = false);
 }

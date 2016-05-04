@@ -35,18 +35,6 @@ class Native extends Gateway
     protected $client;
 
     /**
-     * @var \EzSystems\EzPlatformSolrSearchEngine\Gateway\EndpointResolver
-     */
-    protected $endpointResolver;
-
-    /**
-     * Endpoint registry service.
-     *
-     * @var \EzSystems\EzPlatformSolrSearchEngine\Gateway\EndpointRegistry
-     */
-    protected $endpointRegistry;
-
-    /**
      * Content Query converter.
      *
      * @var \EzSystems\EzPlatformSolrSearchEngine\Query\QueryConverter
@@ -78,8 +66,6 @@ class Native extends Gateway
      * Construct from HTTP client.
      *
      * @param HttpClient $client
-     * @param \EzSystems\EzPlatformSolrSearchEngine\Gateway\EndpointResolver $endpointResolver
-     * @param \EzSystems\EzPlatformSolrSearchEngine\Gateway\EndpointRegistry $endpointRegistry
      * @param \EzSystems\EzPlatformSolrSearchEngine\Query\QueryConverter $contentQueryConverter
      * @param \EzSystems\EzPlatformSolrSearchEngine\Query\QueryConverter $locationQueryConverter
      * @param FieldValueMapper $fieldValueMapper
@@ -87,16 +73,12 @@ class Native extends Gateway
      */
     public function __construct(
         HttpClient $client,
-        EndpointResolver $endpointResolver,
-        EndpointRegistry $endpointRegistry,
         QueryConverter $contentQueryConverter,
         QueryConverter $locationQueryConverter,
         FieldValueMapper $fieldValueMapper,
         FieldNameGenerator $nameGenerator
     ) {
         $this->client = $client;
-        $this->endpointResolver = $endpointResolver;
-        $this->endpointRegistry = $endpointRegistry;
         $this->contentQueryConverter = $contentQueryConverter;
         $this->locationQueryConverter = $locationQueryConverter;
         $this->fieldValueMapper = $fieldValueMapper;
@@ -107,50 +89,47 @@ class Native extends Gateway
      * Returns search hits for the given query.
      *
      * @param \eZ\Publish\API\Repository\Values\Content\Query $query
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Gateway\Endpoint $entryEndpoint
      * @param \EzSystems\EzPlatformSolrSearchEngine\Gateway\Endpoint[] $targetEndpoints
      *
      * @return mixed
      */
-    public function findContent(Query $query, array $targetEndpoints)
+    public function findContent(Query $query, Endpoint $entryEndpoint, array $targetEndpoints)
     {
         $parameters = $this->contentQueryConverter->convert($query, $targetEndpoints);
 
-        return $this->internalFind($parameters);
+        return $this->internalFind($parameters, $entryEndpoint);
     }
 
     /**
      * Returns search hits for the given query.
      *
      * @param \eZ\Publish\API\Repository\Values\Content\Query $query
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Gateway\Endpoint $entryEndpoint
      * @param \EzSystems\EzPlatformSolrSearchEngine\Gateway\Endpoint[] $targetEndpoints
      *
      * @return mixed
      */
-    public function findLocations(Query $query, array $targetEndpoints)
+    public function findLocations(Query $query, Endpoint $entryEndpoint, array $targetEndpoints)
     {
         $parameters = $this->locationQueryConverter->convert($query, $targetEndpoints);
 
-        return $this->internalFind($parameters);
+        return $this->internalFind($parameters, $entryEndpoint);
     }
 
     /**
      * Returns search hits for the given array of Solr query parameters.
      *
      * @param array $parameters
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Gateway\Endpoint $entryEndpoint
      *
      * @return mixed
      */
-    protected function internalFind(array $parameters)
+    protected function internalFind(array $parameters, Endpoint $entryEndpoint)
     {
         $queryString = $this->generateQueryString($parameters);
 
-        $response = $this->client->request(
-            'GET',
-            $this->endpointRegistry->getEndpoint(
-                $this->endpointResolver->getEntryEndpoint()
-            ),
-            "/select?{$queryString}"
-        );
+        $response = $this->client->request('GET', $entryEndpoint, "/select?{$queryString}" );
 
         // @todo: Error handling?
         $result = json_decode($response->body);
@@ -205,19 +184,12 @@ class Native extends Gateway
         }
     }
 
-    /**
-     * Deletes documents by the given $query.
-     *
-     * @param string $query
-     */
-    public function deleteByQuery($query)
+    public function deleteByQuery($query, array $endpoints)
     {
-        $endpoints = $this->endpointResolver->getEndpoints();
-
-        foreach ($endpoints as $endpointName) {
+        foreach ($endpoints as $endpoint) {
             $this->client->request(
                 'POST',
-                $this->endpointRegistry->getEndpoint($endpointName),
+                $endpoint,
                 '/update?wt=json',
                 new Message(
                     array(
@@ -229,19 +201,10 @@ class Native extends Gateway
         }
     }
 
-    /**
-     * @todo implement purging for document type
-     *
-     * Purges all contents from the index
-     */
-    public function purgeIndex()
+    public function purgeIndex(array $endpoints)
     {
-        $endpoints = $this->endpointResolver->getEndpoints();
-
-        foreach ($endpoints as $endpointName) {
-            $this->purgeEndpoint(
-                $this->endpointRegistry->getEndpoint($endpointName)
-            );
+        foreach ($endpoints as $endpoint) {
+            $this->purgeEndpoint($endpoint);
         }
     }
 
@@ -265,25 +228,14 @@ class Native extends Gateway
         );
     }
 
-    /**
-     * Commits the data to the Solr index, making it available for search.
-     *
-     * This will perform Solr 'soft commit', which means there is no guarantee that data
-     * is actually written to the stable storage, it is only made available for search.
-     * Passing true will also write the data to the safe storage, ensuring durability.
-     *
-     * @param bool $flush
-     */
-    public function commit($flush = false)
+    public function commit(array $endpoints, $flush = false)
     {
-        $payload = $flush ?
-            '<commit/>' :
-            '<commit softCommit="true"/>';
+        $payload = $flush ? '<commit/>' : '<commit softCommit="true"/>';
 
-        foreach ($this->endpointResolver->getEndpoints() as $endpointName) {
+        foreach ($endpoints as $endpoint) {
             $result = $this->client->request(
                 'POST',
-                $this->endpointRegistry->getEndpoint($endpointName),
+                $endpoint,
                 '/update',
                 new Message(
                     array(

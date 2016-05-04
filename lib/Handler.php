@@ -149,10 +149,13 @@ class Handler implements SearchHandlerInterface
             DocumentMapper::DOCUMENT_TYPE_IDENTIFIER_CONTENT
         );
 
+        $entryEndpoint = $this->endpointRegistry->getEndpoint(
+            $this->endpointResolver->getEntryEndpoint()
+        );
         $targetEndpoints = $this->getSearchTargets($fieldFilters);
 
         return $this->resultExtractor->extract(
-            $this->gateway->findContent($query, $targetEndpoints)
+            $this->gateway->findContent($query, $entryEndpoint, $targetEndpoints)
         );
     }
 
@@ -185,10 +188,13 @@ class Handler implements SearchHandlerInterface
             DocumentMapper::DOCUMENT_TYPE_IDENTIFIER_CONTENT
         );
 
+        $entryEndpoint = $this->endpointRegistry->getEndpoint(
+            $this->endpointResolver->getEntryEndpoint()
+        );
         $targetEndpoints = $this->getSearchTargets($fieldFilters);
 
         $result = $this->resultExtractor->extract(
-            $this->gateway->findContent($query, $targetEndpoints)
+            $this->gateway->findContent($query, $entryEndpoint, $targetEndpoints)
         );
 
         if (!$result->totalCount) {
@@ -223,10 +229,13 @@ class Handler implements SearchHandlerInterface
             DocumentMapper::DOCUMENT_TYPE_IDENTIFIER_LOCATION
         );
 
+        $entryEndpoint = $this->endpointRegistry->getEndpoint(
+            $this->endpointResolver->getEntryEndpoint()
+        );
         $targetEndpoints = $this->getSearchTargets($fieldFilters);
 
         return $this->resultExtractor->extract(
-            $this->gateway->findLocations($query, $targetEndpoints)
+            $this->gateway->findLocations($query, $entryEndpoint, $targetEndpoints)
         );
     }
 
@@ -385,9 +394,10 @@ class Handler implements SearchHandlerInterface
      */
     public function deleteContent($contentId, $versionId = null)
     {
+        $endpoints = $this->getEndpoints();
         $idPrefix = $this->mapper->generateContentDocumentId($contentId);
 
-        $this->gateway->deleteByQuery("_root_:{$idPrefix}*");
+        $this->gateway->deleteByQuery("_root_:{$idPrefix}*", $endpoints);
     }
 
     /**
@@ -398,9 +408,10 @@ class Handler implements SearchHandlerInterface
      */
     public function deleteLocation($locationId, $contentId)
     {
+        $endpoints = $this->getEndpoints();
         $idPrefix = $this->mapper->generateContentDocumentId($contentId);
 
-        $this->gateway->deleteByQuery("_root_:{$idPrefix}*");
+        $this->gateway->deleteByQuery("_root_:{$idPrefix}*", $endpoints);
 
         // TODO it seems this part of location deletion (not last location) misses integration tests
         try {
@@ -420,7 +431,9 @@ class Handler implements SearchHandlerInterface
      */
     public function purgeIndex()
     {
-        $this->gateway->purgeIndex();
+        $endpoints = $this->getEndpoints();
+
+        $this->gateway->purgeIndex($endpoints);
     }
 
     /**
@@ -436,6 +449,20 @@ class Handler implements SearchHandlerInterface
      */
     public function commit($flush = false)
     {
-        $this->gateway->commit($flush);
+        $endpoints = $this->getEndpoints();
+
+        $this->gateway->commit($endpoints, $flush);
+    }
+
+    private function getEndpoints()
+    {
+        $endpointNames = $this->endpointResolver->getEndpoints();
+        $endpoints = [];
+
+        foreach ($endpointNames as $endpointName) {
+            $endpoints[] = $this->endpointRegistry->getEndpoint($endpointName);
+        }
+
+        return $endpoints;
     }
 }
