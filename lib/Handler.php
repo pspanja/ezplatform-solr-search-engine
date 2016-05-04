@@ -21,6 +21,9 @@ use eZ\Publish\API\Repository\Values\Content\Query;
 use eZ\Publish\API\Repository\Values\Content\LocationQuery;
 use eZ\Publish\Core\Base\Exceptions\NotFoundException;
 use eZ\Publish\Core\Base\Exceptions\InvalidArgumentException;
+use eZ\Publish\SPI\Search\Field;
+use eZ\Publish\SPI\Search\Document;
+use eZ\Publish\SPI\Search\FieldType;
 
 /**
  * The Content Search handler retrieves sets of of Content objects, based on a
@@ -266,7 +269,7 @@ class Handler implements SearchHandlerInterface
      */
     public function indexContent(Content $content)
     {
-        $this->gateway->bulkIndexDocuments(array($this->mapper->mapContentBlock($content)));
+        $this->bulkIndexContent(array($content));
     }
 
     /**
@@ -289,14 +292,78 @@ class Handler implements SearchHandlerInterface
     public function bulkIndexContent(array $contentObjects)
     {
         $documents = array();
+        $documentMap = array();
+        $mainTranslationsEndpoint = $this->endpointResolver->getMainLanguagesEndpoint();
+        $mainTranslationsDocuments = array();
 
         foreach ($contentObjects as $content) {
             $documents[] = $this->mapper->mapContentBlock($content);
         }
 
-        if (!empty($documents)) {
-            $this->gateway->bulkIndexDocuments($documents);
+        foreach ($documents as $translationDocuments) {
+            foreach ($translationDocuments as $document) {
+                $documentMap[$document->languageCode][] = $document;
+
+                if ($mainTranslationsEndpoint !== null && $document->isMainTranslation) {
+                    $mainTranslationsDocuments[] = $this->getMainTranslationDocument($document);
+                }
+            }
         }
+
+        foreach ($documentMap as $languageCode => $translationDocuments) {
+            $this->gateway->bulkIndexDocuments(
+                $translationDocuments,
+                $this->endpointRegistry->getEndpoint(
+                    $this->endpointResolver->getIndexingTarget($languageCode)
+                )
+            );
+        }
+
+        if (!empty($mainTranslationsDocuments)) {
+            $this->gateway->bulkIndexDocuments(
+                $mainTranslationsDocuments,
+                $this->endpointRegistry->getEndpoint($mainTranslationsEndpoint)
+            );
+        }
+    }
+
+    /**
+     * Returns version of the $document to be indexed in the always available core.
+     *
+     * @param \eZ\Publish\SPI\Search\Document $document
+     *
+     * @return \eZ\Publish\SPI\Search\Document
+     */
+    protected function getMainTranslationDocument(Document $document)
+    {
+        // Clone to prevent mutation
+        $document = clone $document;
+        $subDocuments = array();
+
+        $document->id .= 'mt';
+        $document->fields[] = new Field(
+            'meta_indexed_main_translation',
+            true,
+            new FieldType\BooleanField()
+        );
+
+        foreach ($document->documents as $subDocument) {
+            // Clone to prevent mutation
+            $subDocument = clone $subDocument;
+
+            $subDocument->id .= 'mt';
+            $subDocument->fields[] = new Field(
+                'meta_indexed_main_translation',
+                true,
+                new FieldType\BooleanField()
+            );
+
+            $subDocuments[] = $subDocument;
+        }
+
+        $document->documents = $subDocuments;
+
+        return $document;
     }
 
     /**
