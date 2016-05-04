@@ -27,14 +27,14 @@ interface EndpointResolver
      *
      * @param string $languageCode
      *
-     * @return string
+     * @return \EzSystems\EzPlatformSolrSearchEngine\Gateway\Endpoint
      */
     public function getIndexingTarget($languageCode);
 
     /**
      * Returns name of the Endpoint used to index translations in main languages.
      *
-     * @return null|string
+     * @return null|\EzSystems\EzPlatformSolrSearchEngine\Gateway\Endpoint
      */
     public function getMainLanguagesEndpoint();
 
@@ -43,14 +43,14 @@ interface EndpointResolver
      *
      * @param array $languageSettings
      *
-     * @return string[]
+     * @return \EzSystems\EzPlatformSolrSearchEngine\Gateway\Endpoint[]
      */
     public function getSearchTargets(array $languageSettings);
 
     /**
      * Returns names of all Endpoints.
      *
-     * @return string[]
+     * @return \EzSystems\EzPlatformSolrSearchEngine\Gateway\Endpoint[]
      */
     public function getEndpoints();
 }

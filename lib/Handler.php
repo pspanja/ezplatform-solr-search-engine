@@ -11,7 +11,6 @@
 namespace EzSystems\EzPlatformSolrSearchEngine;
 
 use EzSystems\EzPlatformSolrSearchEngine\Gateway\EndpointResolver;
-use EzSystems\EzPlatformSolrSearchEngine\Gateway\EndpointRegistry;
 use eZ\Publish\SPI\Persistence\Content;
 use eZ\Publish\SPI\Persistence\Content\Location;
 use eZ\Publish\SPI\Persistence\Content\Handler as ContentHandler;
@@ -89,13 +88,6 @@ class Handler implements SearchHandlerInterface
     protected $endpointResolver;
 
     /**
-     * Endpoint registry service.
-     *
-     * @var \EzSystems\EzPlatformSolrSearchEngine\Gateway\EndpointRegistry
-     */
-    protected $endpointRegistry;
-
-    /**
      * Creates a new content handler.
      *
      * @param \EzSystems\EzPlatformSolrSearchEngine\Gateway $gateway
@@ -104,7 +96,6 @@ class Handler implements SearchHandlerInterface
      * @param \EzSystems\EzPlatformSolrSearchEngine\ResultExtractor $resultExtractor
      * @param \EzSystems\EzPlatformSolrSearchEngine\CoreFilter $coreFilter
      * @param \EzSystems\EzPlatformSolrSearchEngine\Gateway\EndpointResolver $endpointResolver
-     * @param \EzSystems\EzPlatformSolrSearchEngine\Gateway\EndpointRegistry $endpointRegistry
      */
     public function __construct(
         Gateway $gateway,
@@ -112,8 +103,7 @@ class Handler implements SearchHandlerInterface
         DocumentMapper $mapper,
         ResultExtractor $resultExtractor,
         CoreFilter $coreFilter,
-        EndpointResolver $endpointResolver,
-        EndpointRegistry $endpointRegistry
+        EndpointResolver $endpointResolver
     ) {
         $this->gateway = $gateway;
         $this->contentHandler = $contentHandler;
@@ -121,7 +111,6 @@ class Handler implements SearchHandlerInterface
         $this->resultExtractor = $resultExtractor;
         $this->coreFilter = $coreFilter;
         $this->endpointResolver = $endpointResolver;
-        $this->endpointRegistry = $endpointRegistry;
     }
 
     /**
@@ -149,10 +138,8 @@ class Handler implements SearchHandlerInterface
             DocumentMapper::DOCUMENT_TYPE_IDENTIFIER_CONTENT
         );
 
-        $entryEndpoint = $this->endpointRegistry->getEndpoint(
-            $this->endpointResolver->getEntryEndpoint()
-        );
-        $targetEndpoints = $this->getSearchTargets($fieldFilters);
+        $entryEndpoint = $this->endpointResolver->getEntryEndpoint();
+        $targetEndpoints = $this->endpointResolver->getSearchTargets($fieldFilters);
 
         return $this->resultExtractor->extract(
             $this->gateway->findContent($query, $entryEndpoint, $targetEndpoints)
@@ -188,10 +175,8 @@ class Handler implements SearchHandlerInterface
             DocumentMapper::DOCUMENT_TYPE_IDENTIFIER_CONTENT
         );
 
-        $entryEndpoint = $this->endpointRegistry->getEndpoint(
-            $this->endpointResolver->getEntryEndpoint()
-        );
-        $targetEndpoints = $this->getSearchTargets($fieldFilters);
+        $entryEndpoint = $this->endpointResolver->getEntryEndpoint();
+        $targetEndpoints = $this->endpointResolver->getSearchTargets($fieldFilters);
 
         $result = $this->resultExtractor->extract(
             $this->gateway->findContent($query, $entryEndpoint, $targetEndpoints)
@@ -229,33 +214,12 @@ class Handler implements SearchHandlerInterface
             DocumentMapper::DOCUMENT_TYPE_IDENTIFIER_LOCATION
         );
 
-        $entryEndpoint = $this->endpointRegistry->getEndpoint(
-            $this->endpointResolver->getEntryEndpoint()
-        );
-        $targetEndpoints = $this->getSearchTargets($fieldFilters);
+        $entryEndpoint = $this->endpointResolver->getEntryEndpoint();
+        $targetEndpoints = $this->endpointResolver->getSearchTargets($fieldFilters);
 
         return $this->resultExtractor->extract(
             $this->gateway->findLocations($query, $entryEndpoint, $targetEndpoints)
         );
-    }
-
-    /**
-     * Returns search targets for given language settings.
-     *
-     * @param array $languageSettings
-     *
-     * @return \EzSystems\EzPlatformSolrSearchEngine\Gateway\Endpoint[]
-     */
-    protected function getSearchTargets($languageSettings)
-    {
-        $endpoints = array();
-        $endpointNames = $this->endpointResolver->getSearchTargets($languageSettings);
-
-        foreach ($endpointNames as $endpointName) {
-            $endpoints[] = $this->endpointRegistry->getEndpoint($endpointName);
-        }
-
-        return $endpoints;
     }
 
     /**
@@ -302,7 +266,7 @@ class Handler implements SearchHandlerInterface
     {
         $documents = array();
         $documentMap = array();
-        $mainTranslationsEndpoint = $this->endpointResolver->getMainLanguagesEndpoint();
+        $mainTranslationsTarget = $this->endpointResolver->getMainLanguagesEndpoint();
         $mainTranslationsDocuments = array();
 
         foreach ($contentObjects as $content) {
@@ -313,26 +277,19 @@ class Handler implements SearchHandlerInterface
             foreach ($translationDocuments as $document) {
                 $documentMap[$document->languageCode][] = $document;
 
-                if ($mainTranslationsEndpoint !== null && $document->isMainTranslation) {
+                if ($mainTranslationsTarget !== null && $document->isMainTranslation) {
                     $mainTranslationsDocuments[] = $this->getMainTranslationDocument($document);
                 }
             }
         }
 
         foreach ($documentMap as $languageCode => $translationDocuments) {
-            $this->gateway->bulkIndexDocuments(
-                $translationDocuments,
-                $this->endpointRegistry->getEndpoint(
-                    $this->endpointResolver->getIndexingTarget($languageCode)
-                )
-            );
+            $languageTarget = $this->endpointResolver->getIndexingTarget($languageCode);
+            $this->gateway->bulkIndexDocuments($translationDocuments, $languageTarget);
         }
 
         if (!empty($mainTranslationsDocuments)) {
-            $this->gateway->bulkIndexDocuments(
-                $mainTranslationsDocuments,
-                $this->endpointRegistry->getEndpoint($mainTranslationsEndpoint)
-            );
+            $this->gateway->bulkIndexDocuments($mainTranslationsDocuments, $mainTranslationsTarget);
         }
     }
 
@@ -394,7 +351,7 @@ class Handler implements SearchHandlerInterface
      */
     public function deleteContent($contentId, $versionId = null)
     {
-        $endpoints = $this->getEndpoints();
+        $endpoints = $this->endpointResolver->getEndpoints();
         $idPrefix = $this->mapper->generateContentDocumentId($contentId);
 
         $this->gateway->deleteByQuery("_root_:{$idPrefix}*", $endpoints);
@@ -408,7 +365,7 @@ class Handler implements SearchHandlerInterface
      */
     public function deleteLocation($locationId, $contentId)
     {
-        $endpoints = $this->getEndpoints();
+        $endpoints = $this->endpointResolver->getEndpoints();
         $idPrefix = $this->mapper->generateContentDocumentId($contentId);
 
         $this->gateway->deleteByQuery("_root_:{$idPrefix}*", $endpoints);
@@ -431,7 +388,7 @@ class Handler implements SearchHandlerInterface
      */
     public function purgeIndex()
     {
-        $endpoints = $this->getEndpoints();
+        $endpoints = $this->endpointResolver->getEndpoints();
 
         $this->gateway->purgeIndex($endpoints);
     }
@@ -449,20 +406,8 @@ class Handler implements SearchHandlerInterface
      */
     public function commit($flush = false)
     {
-        $endpoints = $this->getEndpoints();
+        $endpoints = $this->endpointResolver->getEndpoints();
 
         $this->gateway->commit($endpoints, $flush);
-    }
-
-    private function getEndpoints()
-    {
-        $endpointNames = $this->endpointResolver->getEndpoints();
-        $endpoints = [];
-
-        foreach ($endpointNames as $endpointName) {
-            $endpoints[] = $this->endpointRegistry->getEndpoint($endpointName);
-        }
-
-        return $endpoints;
     }
 }

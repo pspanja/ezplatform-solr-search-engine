@@ -29,6 +29,7 @@ services:
     ezpublish.search.solr.gateway.endpoint_resolver.native:
         class: %ezpublish.search.solr.gateway.endpoint_resolver.native.class%
         arguments:
+            - @ezpublish.search.solr.gateway.endpoint_registry
             - %ezpublish.search.solr.entry_endpoints%
             - %ezpublish.search.solr.cluster_endpoints%
             - %ezpublish.search.solr.default_endpoint%
@@ -102,7 +103,6 @@ services:
             - @ezpublish.search.solr.result_extractor
             - @ezpublish.search.solr.core_filter
             - @ezpublish.search.solr.gateway.endpoint_resolver
-            - @ezpublish.search.solr.gateway.endpoint_registry
         tags:
             - {name: ezpublish.searchEngine, alias: solr}
         lazy: true
