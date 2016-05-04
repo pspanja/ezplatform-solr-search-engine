@@ -12,6 +12,7 @@ namespace EzSystems\EzPlatformSolrSearchEngine;
 
 use eZ\Publish\SPI\Persistence\Content;
 use eZ\Publish\SPI\Persistence\Content\Location;
+use eZ\Publish\SPI\Search\Document;
 
 /**
  * Mapper maps Content and Location objects to a Document objects, representing a
@@ -76,4 +77,13 @@ interface DocumentMapper
      * @return string
      */
     public function generateLocationDocumentId($locationId, $languageCode = null);
+
+    /**
+     * Returns version of the $document to be indexed in the always available core.
+     *
+     * @param \eZ\Publish\SPI\Search\Document $document
+     *
+     * @return \eZ\Publish\SPI\Search\Document
+     */
+    public function getMainTranslationDocument(Document $document);
 }
