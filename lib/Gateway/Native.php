@@ -114,8 +114,8 @@ class Native extends Gateway
      */
     public function findContent(Query $query, array $languageSettings = array())
     {
-        $searchTargets = $this->getSearchTargets($languageSettings);
-        $parameters = $this->contentQueryConverter->convert($query, $searchTargets);
+        $targetEndpoints = $this->getSearchTargets($languageSettings);
+        $parameters = $this->contentQueryConverter->convert($query, $targetEndpoints);
 
         return $this->internalFind($parameters);
     }
@@ -131,8 +131,8 @@ class Native extends Gateway
      */
     public function findLocations(Query $query, array $languageSettings = array())
     {
-        $searchTargets = $this->getSearchTargets($languageSettings);
-        $parameters = $this->locationQueryConverter->convert($query, $searchTargets);
+        $targetEndpoints = $this->getSearchTargets($languageSettings);
+        $parameters = $this->locationQueryConverter->convert($query, $targetEndpoints);
 
         return $this->internalFind($parameters);
     }
@@ -192,7 +192,7 @@ class Native extends Gateway
      *
      * @param array $languageSettings
      *
-     * @return string
+     * @return \EzSystems\EzPlatformSolrSearchEngine\Gateway\Endpoint[]
      */
     protected function getSearchTargets($languageSettings)
     {
@@ -201,11 +201,11 @@ class Native extends Gateway
 
         if (!empty($endpoints)) {
             foreach ($endpoints as $endpoint) {
-                $shards[] = $this->endpointRegistry->getEndpoint($endpoint)->getIdentifier();
+                $shards[] = $this->endpointRegistry->getEndpoint($endpoint);
             }
         }
 
-        return implode(',', $shards);
+        return $shards;
     }
 
     /**

@@ -59,7 +59,7 @@ class NativeQueryConverter extends QueryConverter
         $this->facetBuilderVisitor = $facetBuilderVisitor;
     }
 
-    public function convert(Query $query, $searchTargets)
+    public function convert(Query $query, array $targetEndpoints)
     {
         $params = array(
             'defType' => 'edismax',
@@ -70,7 +70,7 @@ class NativeQueryConverter extends QueryConverter
             'rows' => $query->limit,
             'fl' => '*,score,[shard]',
             'wt' => 'json',
-            'shards' => $searchTargets,
+            'shards' => $this->getShardsString($targetEndpoints),
         );
 
         $facetParams = $this->getFacetParams($query->facetBuilders);
@@ -81,6 +81,24 @@ class NativeQueryConverter extends QueryConverter
         }
 
         return $params;
+    }
+
+    /**
+     * Return 'shards' query parameter value for the given $targetEndpoints.
+     *
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Gateway\Endpoint[] $targetEndpoints
+     *
+     * @return string
+     */
+    private function getShardsString(array $targetEndpoints)
+    {
+        $shards = [];
+
+        foreach ($targetEndpoints as $endpoint) {
+            $shards[] = $endpoint->getIdentifier();
+        }
+
+        return implode(',', $shards);
     }
 
     /**
