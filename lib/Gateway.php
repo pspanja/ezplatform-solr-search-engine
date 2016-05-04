@@ -22,23 +22,21 @@ abstract class Gateway
      * Returns search hits for the given query.
      *
      * @param \eZ\Publish\API\Repository\Values\Content\Query $query
-     * @param array $fieldFilters - a map of filters for the returned fields.
-     *        Currently supported: <code>array("languages" => array(<language1>,..))</code>.
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Gateway\Endpoint[] $targetEndpoints
      *
      * @return mixed
      */
-    abstract public function findContent(Query $query, array $fieldFilters = array());
+    abstract public function findContent(Query $query, array $targetEndpoints);
 
     /**
      * Returns search hits for the given query.
      *
      * @param \eZ\Publish\API\Repository\Values\Content\Query $query
-     * @param array $fieldFilters - a map of filters for the returned fields.
-     *        Currently supported: <code>array("languages" => array(<language1>,..))</code>.
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Gateway\Endpoint[] $targetEndpoints
      *
      * @return mixed
      */
-    abstract public function findLocations(Query $query, array $fieldFilters = array());
+    abstract public function findLocations(Query $query, array $targetEndpoints);
 
     /**
      * Indexes an array of documents.

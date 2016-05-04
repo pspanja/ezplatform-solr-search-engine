@@ -107,14 +107,12 @@ class Native extends Gateway
      * Returns search hits for the given query.
      *
      * @param \eZ\Publish\API\Repository\Values\Content\Query $query
-     * @param array $languageSettings - a map of filters for the returned fields.
-     *        Currently supported: <code>array("languages" => array(<language1>,..))</code>.
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Gateway\Endpoint[] $targetEndpoints
      *
      * @return mixed
      */
-    public function findContent(Query $query, array $languageSettings = array())
+    public function findContent(Query $query, array $targetEndpoints)
     {
-        $targetEndpoints = $this->getSearchTargets($languageSettings);
         $parameters = $this->contentQueryConverter->convert($query, $targetEndpoints);
 
         return $this->internalFind($parameters);
@@ -124,14 +122,12 @@ class Native extends Gateway
      * Returns search hits for the given query.
      *
      * @param \eZ\Publish\API\Repository\Values\Content\Query $query
-     * @param array $languageSettings - a map of filters for the returned fields.
-     *        Currently supported: <code>array("languages" => array(<language1>,..))</code>.
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Gateway\Endpoint[] $targetEndpoints
      *
      * @return mixed
      */
-    public function findLocations(Query $query, array $languageSettings = array())
+    public function findLocations(Query $query, array $targetEndpoints)
     {
-        $targetEndpoints = $this->getSearchTargets($languageSettings);
         $parameters = $this->locationQueryConverter->convert($query, $targetEndpoints);
 
         return $this->internalFind($parameters);
@@ -185,27 +181,6 @@ class Native extends Gateway
             '=',
             http_build_query($parameters)
         );
-    }
-
-    /**
-     * Returns search targets for given language settings.
-     *
-     * @param array $languageSettings
-     *
-     * @return \EzSystems\EzPlatformSolrSearchEngine\Gateway\Endpoint[]
-     */
-    protected function getSearchTargets($languageSettings)
-    {
-        $shards = array();
-        $endpoints = $this->endpointResolver->getSearchTargets($languageSettings);
-
-        if (!empty($endpoints)) {
-            foreach ($endpoints as $endpoint) {
-                $shards[] = $this->endpointRegistry->getEndpoint($endpoint);
-            }
-        }
-
-        return $shards;
     }
 
     /**

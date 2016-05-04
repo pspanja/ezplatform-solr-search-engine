@@ -103,6 +103,8 @@ services:
             - @ezpublish.search.solr.document_mapper
             - @ezpublish.search.solr.result_extractor
             - @ezpublish.search.solr.core_filter
+            - @ezpublish.search.solr.gateway.endpoint_resolver
+            - @ezpublish.search.solr.gateway.endpoint_registry
         tags:
             - {name: ezpublish.searchEngine, alias: solr}
         lazy: true

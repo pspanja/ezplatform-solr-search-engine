@@ -10,6 +10,8 @@
  */
 namespace EzSystems\EzPlatformSolrSearchEngine;
 
+use EzSystems\EzPlatformSolrSearchEngine\Gateway\EndpointResolver;
+use EzSystems\EzPlatformSolrSearchEngine\Gateway\EndpointRegistry;
 use eZ\Publish\SPI\Persistence\Content;
 use eZ\Publish\SPI\Persistence\Content\Location;
 use eZ\Publish\SPI\Persistence\Content\Handler as ContentHandler;
@@ -79,6 +81,18 @@ class Handler implements SearchHandlerInterface
     protected $coreFilter;
 
     /**
+     * @var \EzSystems\EzPlatformSolrSearchEngine\Gateway\EndpointResolver
+     */
+    protected $endpointResolver;
+
+    /**
+     * Endpoint registry service.
+     *
+     * @var \EzSystems\EzPlatformSolrSearchEngine\Gateway\EndpointRegistry
+     */
+    protected $endpointRegistry;
+
+    /**
      * Creates a new content handler.
      *
      * @param \EzSystems\EzPlatformSolrSearchEngine\Gateway $gateway
@@ -86,19 +100,25 @@ class Handler implements SearchHandlerInterface
      * @param \EzSystems\EzPlatformSolrSearchEngine\DocumentMapper $mapper
      * @param \EzSystems\EzPlatformSolrSearchEngine\ResultExtractor $resultExtractor
      * @param \EzSystems\EzPlatformSolrSearchEngine\CoreFilter $coreFilter
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Gateway\EndpointResolver $endpointResolver
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Gateway\EndpointRegistry $endpointRegistry
      */
     public function __construct(
         Gateway $gateway,
         ContentHandler $contentHandler,
         DocumentMapper $mapper,
         ResultExtractor $resultExtractor,
-        CoreFilter $coreFilter
+        CoreFilter $coreFilter,
+        EndpointResolver $endpointResolver,
+        EndpointRegistry $endpointRegistry
     ) {
         $this->gateway = $gateway;
         $this->contentHandler = $contentHandler;
         $this->mapper = $mapper;
         $this->resultExtractor = $resultExtractor;
         $this->coreFilter = $coreFilter;
+        $this->endpointResolver = $endpointResolver;
+        $this->endpointRegistry = $endpointRegistry;
     }
 
     /**
@@ -126,8 +146,10 @@ class Handler implements SearchHandlerInterface
             DocumentMapper::DOCUMENT_TYPE_IDENTIFIER_CONTENT
         );
 
+        $targetEndpoints = $this->getSearchTargets($fieldFilters);
+
         return $this->resultExtractor->extract(
-            $this->gateway->findContent($query, $fieldFilters)
+            $this->gateway->findContent($query, $targetEndpoints)
         );
     }
 
@@ -160,8 +182,10 @@ class Handler implements SearchHandlerInterface
             DocumentMapper::DOCUMENT_TYPE_IDENTIFIER_CONTENT
         );
 
+        $targetEndpoints = $this->getSearchTargets($fieldFilters);
+
         $result = $this->resultExtractor->extract(
-            $this->gateway->findContent($query, $fieldFilters)
+            $this->gateway->findContent($query, $targetEndpoints)
         );
 
         if (!$result->totalCount) {
@@ -196,9 +220,30 @@ class Handler implements SearchHandlerInterface
             DocumentMapper::DOCUMENT_TYPE_IDENTIFIER_LOCATION
         );
 
+        $targetEndpoints = $this->getSearchTargets($fieldFilters);
+
         return $this->resultExtractor->extract(
-            $this->gateway->findLocations($query, $fieldFilters)
+            $this->gateway->findLocations($query, $targetEndpoints)
         );
+    }
+
+    /**
+     * Returns search targets for given language settings.
+     *
+     * @param array $languageSettings
+     *
+     * @return \EzSystems\EzPlatformSolrSearchEngine\Gateway\Endpoint[]
+     */
+    protected function getSearchTargets($languageSettings)
+    {
+        $shards = array();
+        $endpoints = $this->endpointResolver->getSearchTargets($languageSettings);
+
+        foreach ($endpoints as $endpoint) {
+            $shards[] = $this->endpointRegistry->getEndpoint($endpoint);
+        }
+
+        return $shards;
     }
 
     /**
@@ -236,7 +281,7 @@ class Handler implements SearchHandlerInterface
      *       However it is not added to an official SPI interface yet as we anticipate adding a bulkIndexDocument
      *       using eZ\Publish\SPI\Search\Document instead of bulkIndexContent based on Content objects. However
      *       that won't be added until we have several stable or close to stable advance search engines to make
-     *       sure we match the features of these. 
+     *       sure we match the features of these.
      *       See also {@see Solr\Content\Search\Gateway\Native::bulkIndexContent} for further Solr specific info.
      *
      * @param \eZ\Publish\SPI\Persistence\Content[] $contentObjects
@@ -319,7 +364,7 @@ class Handler implements SearchHandlerInterface
      * Passing true will also write the data to the safe storage, ensuring durability.
      *
      * @see bulkIndexContent() For info on why this is not on an SPI Interface yet.
-     * 
+     *
      * @param bool $flush
      */
     public function commit($flush = false)
