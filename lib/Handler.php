@@ -10,7 +10,7 @@
  */
 namespace EzSystems\EzPlatformSolrSearchEngine;
 
-use EzSystems\EzPlatformSolrSearchEngine\Gateway\EndpointResolver;
+use EzSystems\EzPlatformSolrSearchEngine\EndpointResolver;
 use eZ\Publish\SPI\Persistence\Content;
 use eZ\Publish\SPI\Persistence\Content\Location;
 use eZ\Publish\SPI\Persistence\Content\Handler as ContentHandler;
@@ -80,7 +80,7 @@ class Handler implements SearchHandlerInterface
     protected $coreFilter;
 
     /**
-     * @var \EzSystems\EzPlatformSolrSearchEngine\Gateway\EndpointResolver
+     * @var \EzSystems\EzPlatformSolrSearchEngine\EndpointResolver
      */
     protected $endpointResolver;
 
@@ -92,7 +92,7 @@ class Handler implements SearchHandlerInterface
      * @param \EzSystems\EzPlatformSolrSearchEngine\DocumentMapper $mapper
      * @param \EzSystems\EzPlatformSolrSearchEngine\ResultExtractor $resultExtractor
      * @param \EzSystems\EzPlatformSolrSearchEngine\CoreFilter $coreFilter
-     * @param \EzSystems\EzPlatformSolrSearchEngine\Gateway\EndpointResolver $endpointResolver
+     * @param \EzSystems\EzPlatformSolrSearchEngine\EndpointResolver $endpointResolver
      */
     public function __construct(
         Gateway $gateway,

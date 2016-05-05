@@ -12,7 +12,7 @@ namespace EzSystems\EzPlatformSolrSearchEngine\Gateway\HttpClient;
 
 use EzSystems\EzPlatformSolrSearchEngine\Gateway\HttpClient;
 use EzSystems\EzPlatformSolrSearchEngine\Gateway\Message;
-use EzSystems\EzPlatformSolrSearchEngine\Gateway\Endpoint;
+use EzSystems\EzPlatformSolrSearchEngine\Endpoint;
 
 /**
  * Simple PHP stream based HTTP client.
@@ -25,7 +25,7 @@ class Stream implements HttpClient
      * Returns the result from the remote server.
      *
      * @param string $method
-     * @param \EzSystems\EzPlatformSolrSearchEngine\Gateway\Endpoint $endpoint
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Endpoint $endpoint
      * @param string $path
      * @param Message $message
      *
@@ -92,7 +92,7 @@ class Stream implements HttpClient
      * Merged with the default values.
      *
      * @param \EzSystems\EzPlatformSolrSearchEngine\Gateway\Message $message
-     * @param \EzSystems\EzPlatformSolrSearchEngine\Gateway\Endpoint $endpoint
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Endpoint $endpoint
      *
      * @return string
      */

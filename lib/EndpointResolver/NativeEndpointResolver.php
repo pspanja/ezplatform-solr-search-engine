@@ -8,19 +8,19 @@
  *
  * @version //autogentag//
  */
-namespace EzSystems\EzPlatformSolrSearchEngine\Gateway\EndpointResolver;
+namespace EzSystems\EzPlatformSolrSearchEngine\EndpointResolver;
 
-use EzSystems\EzPlatformSolrSearchEngine\Gateway\EndpointRegistry;
-use EzSystems\EzPlatformSolrSearchEngine\Gateway\EndpointResolver;
+use EzSystems\EzPlatformSolrSearchEngine\EndpointRegistry;
+use EzSystems\EzPlatformSolrSearchEngine\EndpointResolver;
 use RuntimeException;
 
 /**
- * NativeEndpointResolver provides Solr endpoints for a Content translations.
+ * NativeEndpointResolver provides Solr endpoints for Content translations.
  */
 class NativeEndpointResolver implements EndpointResolver
 {
     /**
-     * @var \EzSystems\EzPlatformSolrSearchEngine\Gateway\EndpointRegistry
+     * @var \EzSystems\EzPlatformSolrSearchEngine\EndpointRegistry
      */
     private $endpointRegistry;
 
@@ -63,7 +63,7 @@ class NativeEndpointResolver implements EndpointResolver
     /**
      * Create from Endpoint names.
      *
-     * @param \EzSystems\EzPlatformSolrSearchEngine\Gateway\EndpointRegistry $endpointRegistry
+     * @param \EzSystems\EzPlatformSolrSearchEngine\EndpointRegistry $endpointRegistry
      * @param string[] $entryEndpoints
      * @param string[] $endpointMap
      * @param null|string $defaultEndpoint
