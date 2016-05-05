@@ -10,17 +10,12 @@
  */
 namespace EzSystems\EzPlatformSolrSearchEngine\Gateway;
 
-use EzSystems\EzPlatformSolrSearchEngine\Gateway;
 use EzSystems\EzPlatformSolrSearchEngine\Endpoint;
-use eZ\Publish\API\Repository\Values\Content\Query;
-use eZ\Publish\Core\Search\Common\FieldNameGenerator;
+use EzSystems\EzPlatformSolrSearchEngine\Gateway;
 use EzSystems\EzPlatformSolrSearchEngine\Query\QueryConverter;
-use EzSystems\EzPlatformSolrSearchEngine\FieldValueMapper;
-use RuntimeException;
-use XMLWriter;
-use eZ\Publish\SPI\Search\Field;
-use eZ\Publish\SPI\Search\Document;
+use eZ\Publish\API\Repository\Values\Content\Query;
 use eZ\Publish\SPI\Search\FieldType;
+use RuntimeException;
 
 /**
  * The Content Search Gateway provides the implementation for one database to
@@ -50,18 +45,9 @@ class Native extends Gateway
     protected $locationQueryConverter;
 
     /**
-     * Field value mapper.
-     *
-     * @var FieldValueMapper
+     * @var \EzSystems\EzPlatformSolrSearchEngine\Gateway\UpdateSerializer
      */
-    protected $fieldValueMapper;
-
-    /**
-     * Field name generator.
-     *
-     * @var FieldNameGenerator
-     */
-    protected $nameGenerator;
+    protected $updateSerializer;
 
     /**
      * Construct from HTTP client.
@@ -69,21 +55,18 @@ class Native extends Gateway
      * @param HttpClient $client
      * @param \EzSystems\EzPlatformSolrSearchEngine\Query\QueryConverter $contentQueryConverter
      * @param \EzSystems\EzPlatformSolrSearchEngine\Query\QueryConverter $locationQueryConverter
-     * @param FieldValueMapper $fieldValueMapper
-     * @param FieldNameGenerator $nameGenerator
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Gateway\UpdateSerializer $updateSerializer
      */
     public function __construct(
         HttpClient $client,
         QueryConverter $contentQueryConverter,
         QueryConverter $locationQueryConverter,
-        FieldValueMapper $fieldValueMapper,
-        FieldNameGenerator $nameGenerator
+        UpdateSerializer $updateSerializer
     ) {
         $this->client = $client;
         $this->contentQueryConverter = $contentQueryConverter;
         $this->locationQueryConverter = $locationQueryConverter;
-        $this->fieldValueMapper = $fieldValueMapper;
-        $this->nameGenerator = $nameGenerator;
+        $this->updateSerializer = $updateSerializer;
     }
 
     /**
@@ -165,7 +148,7 @@ class Native extends Gateway
 
     public function bulkIndexDocuments(array $documents, Endpoint $endpoint)
     {
-        $updates = $this->createUpdates($documents);
+        $updates = $this->updateSerializer->serialize($documents);
         $result = $this->client->request(
             'POST',
             $endpoint,
@@ -252,65 +235,6 @@ class Native extends Gateway
                     $result->headers['status'] . var_export($result, true)
                 );
             }
-        }
-    }
-
-    /**
-     * Create document(s) update XML.
-     *
-     * @param \eZ\Publish\SPI\Search\Document[] $documents
-     *
-     * @return string
-     */
-    protected function createUpdates(array $documents)
-    {
-        $xmlWriter = new XMLWriter();
-        $xmlWriter->openMemory();
-        $xmlWriter->startElement('add');
-
-        foreach ($documents as $document) {
-            $this->writeDocument($xmlWriter, $document);
-        }
-
-        $xmlWriter->endElement();
-
-        return $xmlWriter->outputMemory(true);
-    }
-
-    protected function writeDocument(XMLWriter $xmlWriter, Document $document)
-    {
-        $xmlWriter->startElement('doc');
-
-        $this->writeField(
-            $xmlWriter,
-            new Field(
-                'id',
-                $document->id,
-                new FieldType\IdentifierField()
-            )
-        );
-
-        foreach ($document->fields as $field) {
-            $this->writeField($xmlWriter, $field);
-        }
-
-        foreach ($document->documents as $subDocument) {
-            $this->writeDocument($xmlWriter, $subDocument);
-        }
-
-        $xmlWriter->endElement();
-    }
-
-    protected function writeField(XMLWriter $xmlWriter, Field $field)
-    {
-        foreach ((array)$this->fieldValueMapper->map($field) as $value) {
-            $xmlWriter->startElement('field');
-            $xmlWriter->writeAttribute(
-                'name',
-                $this->nameGenerator->getTypedName($field->name, $field->type)
-            );
-            $xmlWriter->text($value);
-            $xmlWriter->endElement();
         }
     }
 }

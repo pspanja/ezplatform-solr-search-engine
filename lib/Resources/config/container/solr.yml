@@ -10,6 +10,7 @@ parameters:
     ezpublish.search.solr.connection.server: http://localhost:8983/solr/core0
     ezpublish.spi.search.solr.class: EzSystems\EzPlatformSolrSearchEngine\Handler
     ezpublish.search.solr.gateway.native.class: EzSystems\EzPlatformSolrSearchEngine\Gateway\Native
+    ezpublish.search.solr.gateway.update_serializer.class: EzSystems\EzPlatformSolrSearchEngine\Gateway\UpdateSerializer
     ezpublish.search.solr.endpoint_registry.class: EzSystems\EzPlatformSolrSearchEngine\EndpointRegistry
     ezpublish.search.solr.endpoint_resolver.native.class: EzSystems\EzPlatformSolrSearchEngine\EndpointResolver\NativeEndpointResolver
     ezpublish.search.solr.core_filter.native.class: EzSystems\EzPlatformSolrSearchEngine\CoreFilter\NativeCoreFilter
@@ -82,14 +83,19 @@ services:
             - @ezpublish.search.solr.query.location.sort_clause_visitor.aggregate
             - @ezpublish.search.solr.query.location.facet_builder_visitor.aggregate
 
+    ezpublish.search.solr.gateway.update_serializer:
+        class: %ezpublish.search.solr.gateway.update_serializer.class%
+        arguments:
+            - @ezpublish.search.solr.field_value_mapper.aggregate
+            - @ezpublish.search.common.field_name_generator
+
     ezpublish.search.solr.gateway.native:
         class: %ezpublish.search.solr.gateway.native.class%
         arguments:
             - @ezpublish.search.solr.gateway.client.http.stream
             - @ezpublish.search.solr.query_converter.content
             - @ezpublish.search.solr.query_converter.location
-            - @ezpublish.search.solr.field_value_mapper.aggregate
-            - @ezpublish.search.common.field_name_generator
+            - @ezpublish.search.solr.gateway.update_serializer
 
     ezpublish.search.solr.gateway:
         alias: ezpublish.search.solr.gateway.native
