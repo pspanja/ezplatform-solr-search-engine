@@ -16,6 +16,8 @@ use eZ\Publish\API\Repository\Values\Content\Query\CriterionInterface;
 class DocumentTypeId extends Criterion implements CriterionInterface
 {
     /**
+     * @internal
+     *
      * Creates a new DocumentTypeId criterion.
      *
      * @throws \InvalidArgumentException

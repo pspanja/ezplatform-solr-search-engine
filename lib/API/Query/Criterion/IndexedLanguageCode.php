@@ -16,6 +16,8 @@ use eZ\Publish\API\Repository\Values\Content\Query\CriterionInterface;
 class IndexedLanguageCode extends Criterion implements CriterionInterface
 {
     /**
+     * @internal
+     *
      * Creates a new IndexedLanguageCode criterion.
      *
      * @throws \InvalidArgumentException

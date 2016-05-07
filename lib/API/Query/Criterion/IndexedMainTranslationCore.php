@@ -26,6 +26,8 @@ class IndexedMainTranslationCore extends Criterion implements CriterionInterface
     const NOT_MAIN_CORE = 1;
 
     /**
+     * @internal
+     *
      * Creates a new IndexedMainTranslationCore criterion.
      *
      * @throws \InvalidArgumentException

@@ -25,6 +25,8 @@ class IndexedAlwaysAvailable extends Criterion implements CriterionInterface
     const NOT_AVAILABLE = 1;
 
     /**
+     * @internal
+     *
      * Creates a new IndexedAlwaysAvailable criterion.
      *
      * @throws \InvalidArgumentException
