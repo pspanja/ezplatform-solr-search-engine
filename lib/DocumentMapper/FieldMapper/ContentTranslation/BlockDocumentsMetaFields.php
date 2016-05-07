@@ -27,6 +27,8 @@ class BlockDocumentsMetaFields extends ContentTranslation
 
     public function mapFields(Content $content, $languageCode)
     {
+        $isMainTranslation = $languageCode === $content->versionInfo->contentInfo->mainLanguageCode;
+
         return [
             new Field(
                 'meta_indexed_language_code',
@@ -35,15 +37,12 @@ class BlockDocumentsMetaFields extends ContentTranslation
             ),
             new Field(
                 'meta_indexed_is_main_translation',
-                ($languageCode === $content->versionInfo->contentInfo->mainLanguageCode),
+                $isMainTranslation,
                 new FieldType\BooleanField()
             ),
             new Field(
                 'meta_indexed_is_main_translation_and_always_available',
-                (
-                    ($languageCode === $content->versionInfo->contentInfo->mainLanguageCode) &&
-                    $content->versionInfo->contentInfo->alwaysAvailable
-                ),
+                $isMainTranslation && $content->versionInfo->contentInfo->alwaysAvailable,
                 new FieldType\BooleanField()
             ),
         ];
