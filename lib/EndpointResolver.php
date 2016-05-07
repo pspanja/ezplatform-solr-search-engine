@@ -32,9 +32,16 @@ interface EndpointResolver
     public function getIndexingTarget($languageCode);
 
     /**
+     * Checks if the Endpoint used to index translations in main languages exists.
+     *
+     * @return bool
+     */
+    public function hasMainLanguagesEndpoint();
+
+    /**
      * Returns name of the Endpoint used to index translations in main languages.
      *
-     * @return null|\EzSystems\EzPlatformSolrSearchEngine\Endpoint
+     * @return \EzSystems\EzPlatformSolrSearchEngine\Endpoint
      */
     public function getMainLanguagesEndpoint();
 

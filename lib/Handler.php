@@ -263,7 +263,6 @@ class Handler implements SearchHandlerInterface
     {
         $documents = array();
         $documentMap = array();
-        $mainTranslationsTarget = $this->endpointResolver->getMainLanguagesEndpoint();
         $mainTranslationsDocuments = array();
 
         foreach ($contentObjects as $content) {
@@ -274,7 +273,7 @@ class Handler implements SearchHandlerInterface
             foreach ($translationDocuments as $document) {
                 $documentMap[$document->languageCode][] = $document;
 
-                if ($mainTranslationsTarget !== null && $document->isMainTranslation) {
+                if ($this->endpointResolver->hasMainLanguagesEndpoint() && $document->isMainTranslation) {
                     $mainTranslationsDocuments[] = $this->mapper->getMainTranslationDocument($document);
                 }
             }
@@ -286,7 +285,10 @@ class Handler implements SearchHandlerInterface
         }
 
         if (!empty($mainTranslationsDocuments)) {
-            $this->gateway->bulkIndexDocuments($mainTranslationsDocuments, $mainTranslationsTarget);
+            $this->gateway->bulkIndexDocuments(
+                $mainTranslationsDocuments,
+                $this->endpointResolver->getMainLanguagesEndpoint()
+            );
         }
     }
 

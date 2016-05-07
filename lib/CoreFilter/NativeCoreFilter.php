@@ -35,17 +35,16 @@ use eZ\Publish\API\Repository\Values\Content\Query\Criterion\Operator;
 class NativeCoreFilter extends CoreFilter
 {
     /**
-     * Indicates presence of main languages index.
-     *
-     * @var bool
+     * @var \EzSystems\EzPlatformSolrSearchEngine\EndpointResolver
      */
-    private $hasMainLanguagesEndpoint;
+    private $endpointResolver;
 
+    /**
+     * @param \EzSystems\EzPlatformSolrSearchEngine\EndpointResolver $endpointResolver
+     */
     public function __construct(EndpointResolver $endpointResolver)
     {
-        $this->hasMainLanguagesEndpoint = (
-            $endpointResolver->getMainLanguagesEndpoint() !== null
-        );
+        $this->endpointResolver = $endpointResolver;
     }
 
     public function apply(Query $query, array $languageSettings, $documentTypeIdentifier)
@@ -144,7 +143,7 @@ class NativeCoreFilter extends CoreFilter
         }
 
         // Exclude main languages index if used
-        if ($this->hasMainLanguagesEndpoint) {
+        if ($this->endpointResolver->hasMainLanguagesEndpoint()) {
             $languageFilters[] = new LogicalNot(
                 new IndexedMainTranslationCore(IndexedMainTranslationCore::MAIN_CORE)
             );
@@ -177,7 +176,7 @@ class NativeCoreFilter extends CoreFilter
         );
 
         // Additionally include only from main translations core if used
-        if ($this->hasMainLanguagesEndpoint) {
+        if ($this->endpointResolver->hasMainLanguagesEndpoint()) {
             $conditions[] = new IndexedMainTranslationCore(IndexedMainTranslationCore::MAIN_CORE);
         }
 

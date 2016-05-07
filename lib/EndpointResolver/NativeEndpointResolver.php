@@ -113,12 +113,13 @@ class NativeEndpointResolver implements EndpointResolver
         );
     }
 
+    public function hasMainLanguagesEndpoint()
+    {
+        return $this->mainLanguagesEndpoint !== null;
+    }
+
     public function getMainLanguagesEndpoint()
     {
-        if ($this->mainLanguagesEndpoint === null) {
-            return null;
-        }
-
         return $this->endpointRegistry->getEndpoint(
             $this->mainLanguagesEndpoint
         );
