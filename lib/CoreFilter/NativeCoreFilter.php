@@ -10,14 +10,19 @@
  */
 namespace EzSystems\EzPlatformSolrSearchEngine\CoreFilter;
 
+use EzSystems\EzPlatformSolrSearchEngine\API\Query\Criterion\DocumentTypeId;
+use EzSystems\EzPlatformSolrSearchEngine\API\Query\Criterion\LanguageCode;
+use EzSystems\EzPlatformSolrSearchEngine\API\Query\Criterion\IndexedMainTranslation;
+use EzSystems\EzPlatformSolrSearchEngine\API\Query\Criterion\IndexedMainTranslationCore;
+use EzSystems\EzPlatformSolrSearchEngine\API\Query\Criterion\IndexedAlwaysAvailable;
+use EzSystems\EzPlatformSolrSearchEngine\API\Query\Criterion\IndexedLanguageCode;
 use EzSystems\EzPlatformSolrSearchEngine\CoreFilter;
-use eZ\Publish\API\Repository\Values\Content\Query;
-use eZ\Publish\API\Repository\Values\Content\Query\Criterion\LogicalNot;
-use eZ\Publish\API\Repository\Values\Content\Query\Criterion\LogicalAnd;
-use eZ\Publish\API\Repository\Values\Content\Query\Criterion\LogicalOr;
-use eZ\Publish\API\Repository\Values\Content\Query\Criterion\CustomField;
-use eZ\Publish\API\Repository\Values\Content\Query\Criterion\Operator;
 use EzSystems\EzPlatformSolrSearchEngine\EndpointResolver;
+use eZ\Publish\API\Repository\Values\Content\Query;
+use eZ\Publish\API\Repository\Values\Content\Query\Criterion\LogicalAnd;
+use eZ\Publish\API\Repository\Values\Content\Query\Criterion\LogicalNot;
+use eZ\Publish\API\Repository\Values\Content\Query\Criterion\LogicalOr;
+use eZ\Publish\API\Repository\Values\Content\Query\Criterion\Operator;
 
 /**
  * Native core filter handles:.
@@ -29,54 +34,6 @@ use EzSystems\EzPlatformSolrSearchEngine\EndpointResolver;
  */
 class NativeCoreFilter extends CoreFilter
 {
-    /**
-     * Name of the Solr backend field holding document type identifier
-     * ('content' or 'location').
-     *
-     * @var string
-     */
-    const FIELD_DOCUMENT_TYPE = 'document_type_id';
-
-    /**
-     * Name of the Solr backend field holding list of all translation's Content
-     * language codes.
-     *
-     * @var string
-     */
-    const FIELD_LANGUAGES = 'content_language_codes_ms';
-
-    /**
-     * Name of the Solr backend field holding language code of the indexed
-     * translation.
-     *
-     * @var string
-     */
-    const FIELD_LANGUAGE = 'meta_indexed_language_code_s';
-
-    /**
-     * Name of the Solr backend field indicating if the indexed translation
-     * is in the main language.
-     *
-     * @var string
-     */
-    const FIELD_IS_MAIN_LANGUAGE = 'meta_indexed_is_main_translation_b';
-
-    /**
-     * Name of the Solr backend field indicating if the indexed translation
-     * is always available.
-     *
-     * @var string
-     */
-    const FIELD_IS_ALWAYS_AVAILABLE = 'meta_indexed_is_main_translation_and_always_available_b';
-
-    /**
-     * Name of the Solr backend field indicating if the indexed document is
-     * located in the main translations index.
-     *
-     * @var string
-     */
-    const FIELD_IS_MAIN_LANGUAGES_INDEX = 'meta_indexed_main_translation_b';
-
     /**
      * Indicates presence of main languages index.
      *
@@ -105,7 +62,7 @@ class NativeCoreFilter extends CoreFilter
 
         $query->filter = new LogicalAnd(
             array(
-                new CustomField(self::FIELD_DOCUMENT_TYPE, Operator::EQ, $documentTypeIdentifier),
+                new DocumentTypeId($documentTypeIdentifier),
                 $query->filter,
                 $this->getCoreCriterion($languages, $useAlwaysAvailable),
             )
@@ -146,7 +103,7 @@ class NativeCoreFilter extends CoreFilter
         }
 
         // Otherwise search only main languages
-        return new CustomField(self::FIELD_IS_MAIN_LANGUAGE, Operator::EQ, true);
+        return new IndexedMainTranslation(IndexedMainTranslation::MAIN);
     }
 
     /**
@@ -162,7 +119,7 @@ class NativeCoreFilter extends CoreFilter
 
         foreach ($languageCodes as $languageCode) {
             // Include language
-            $condition = new CustomField(self::FIELD_LANGUAGE, Operator::EQ, $languageCode);
+            $condition = new IndexedLanguageCode($languageCode);
             // Get list of excluded languages
             $excluded = $this->getExcludedLanguageCodes($languageCodes, $languageCode);
 
@@ -172,7 +129,7 @@ class NativeCoreFilter extends CoreFilter
                     array(
                         $condition,
                         new LogicalNot(
-                            new CustomField(self::FIELD_LANGUAGES, Operator::IN, $excluded)
+                            new LanguageCode($excluded)
                         ),
                     )
                 );
@@ -189,7 +146,7 @@ class NativeCoreFilter extends CoreFilter
         // Exclude main languages index if used
         if ($this->hasMainLanguagesEndpoint) {
             $languageFilters[] = new LogicalNot(
-                new CustomField(self::FIELD_IS_MAIN_LANGUAGES_INDEX, Operator::EQ, true)
+                new IndexedMainTranslationCore(IndexedMainTranslationCore::MAIN_CORE)
             );
         }
 
@@ -212,24 +169,16 @@ class NativeCoreFilter extends CoreFilter
     {
         $conditions = array(
             // Include always available main language translations
-            new CustomField(
-                self::FIELD_IS_ALWAYS_AVAILABLE,
-                Operator::EQ,
-                true
-            ),
+            new IndexedAlwaysAvailable(IndexedAlwaysAvailable::AVAILABLE),
             // Exclude all given languages
             new LogicalNot(
-                new CustomField(self::FIELD_LANGUAGES, Operator::IN, $languageCodes)
+                new LanguageCode($languageCodes)
             ),
         );
 
-        // Include only from main languages index if used
+        // Additionally include only from main translations core if used
         if ($this->hasMainLanguagesEndpoint) {
-            $conditions[] = new CustomField(
-                self::FIELD_IS_MAIN_LANGUAGES_INDEX,
-                Operator::EQ,
-                true
-            );
+            $conditions[] = new IndexedMainTranslationCore(IndexedMainTranslationCore::MAIN_CORE);
         }
 
         // Combine conditions
