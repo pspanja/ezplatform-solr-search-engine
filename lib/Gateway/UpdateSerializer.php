@@ -10,7 +10,7 @@ use eZ\Publish\SPI\Search\FieldType;
 use XMLWriter;
 
 /**
- * Update serializer converts an array of documents to XML string that
+ * Update serializer converts an array of documents to the XML string that
  * can be posted to Solr backend for indexing.
  */
 class UpdateSerializer
