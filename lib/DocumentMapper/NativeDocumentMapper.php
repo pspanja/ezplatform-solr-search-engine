@@ -212,7 +212,7 @@ class NativeDocumentMapper implements DocumentMapper
      * @param string $id
      * @return \eZ\Publish\SPI\Search\Document
      */
-    protected function getDummyDocument($id)
+    private function getDummyDocument($id)
     {
         return new Document(
             array(
