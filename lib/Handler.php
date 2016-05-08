@@ -85,6 +85,11 @@ class Handler implements SearchHandlerInterface
     protected $endpointResolver;
 
     /**
+     * @var \EzSystems\EzPlatformSolrSearchEngine\DocumentIndexer
+     */
+    protected $documentIndexer;
+
+    /**
      * Creates a new content handler.
      *
      * @param \EzSystems\EzPlatformSolrSearchEngine\Gateway $gateway
@@ -93,6 +98,8 @@ class Handler implements SearchHandlerInterface
      * @param \EzSystems\EzPlatformSolrSearchEngine\ResultExtractor $resultExtractor
      * @param \EzSystems\EzPlatformSolrSearchEngine\CoreFilter $coreFilter
      * @param \EzSystems\EzPlatformSolrSearchEngine\EndpointResolver $endpointResolver
+     *
+     * @param \EzSystems\EzPlatformSolrSearchEngine\DocumentIndexer $documentIndexer
      */
     public function __construct(
         Gateway $gateway,
@@ -100,7 +107,8 @@ class Handler implements SearchHandlerInterface
         DocumentMapper $mapper,
         ResultExtractor $resultExtractor,
         CoreFilter $coreFilter,
-        EndpointResolver $endpointResolver
+        EndpointResolver $endpointResolver,
+        DocumentIndexer $documentIndexer
     ) {
         $this->gateway = $gateway;
         $this->contentHandler = $contentHandler;
@@ -108,6 +116,7 @@ class Handler implements SearchHandlerInterface
         $this->resultExtractor = $resultExtractor;
         $this->coreFilter = $coreFilter;
         $this->endpointResolver = $endpointResolver;
+        $this->documentIndexer = $documentIndexer;
     }
 
     /**
@@ -261,35 +270,7 @@ class Handler implements SearchHandlerInterface
      */
     public function bulkIndexContent(array $contentObjects)
     {
-        $documents = array();
-        $documentMap = array();
-        $mainTranslationsDocuments = array();
-
-        foreach ($contentObjects as $content) {
-            $documents[] = $this->mapper->mapContentBlock($content);
-        }
-
-        foreach ($documents as $translationDocuments) {
-            foreach ($translationDocuments as $document) {
-                $documentMap[$document->languageCode][] = $document;
-
-                if ($this->endpointResolver->hasMainLanguagesEndpoint() && $document->isMainTranslation) {
-                    $mainTranslationsDocuments[] = $this->mapper->getMainTranslationDocument($document);
-                }
-            }
-        }
-
-        foreach ($documentMap as $languageCode => $translationDocuments) {
-            $languageTarget = $this->endpointResolver->getIndexingTarget($languageCode);
-            $this->gateway->bulkIndexDocuments($translationDocuments, $languageTarget);
-        }
-
-        if (!empty($mainTranslationsDocuments)) {
-            $this->gateway->bulkIndexDocuments(
-                $mainTranslationsDocuments,
-                $this->endpointResolver->getMainLanguagesEndpoint()
-            );
-        }
+        $this->documentIndexer->bulkIndexContent($contentObjects);
     }
 
     /**

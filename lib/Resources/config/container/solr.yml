@@ -15,6 +15,7 @@ parameters:
     ezpublish.search.solr.endpoint_resolver.native.class: EzSystems\EzPlatformSolrSearchEngine\EndpointResolver\NativeEndpointResolver
     ezpublish.search.solr.core_filter.native.class: EzSystems\EzPlatformSolrSearchEngine\CoreFilter\NativeCoreFilter
     ezpublish.search.solr.document_mapper.native.class: EzSystems\EzPlatformSolrSearchEngine\DocumentMapper\NativeDocumentMapper
+    ezpublish.search.solr.document_indexer.class: EzSystems\EzPlatformSolrSearchEngine\DocumentIndexer
     ezpublish.search.solr.result_extractor.native.class: EzSystems\EzPlatformSolrSearchEngine\ResultExtractor\NativeResultExtractor
     ezpublish.search.solr.query_converter.class: EzSystems\EzPlatformSolrSearchEngine\Query\Common\QueryConverter\NativeQueryConverter
     # Endpoint resolver arguments must be set in order to be overrideable
@@ -46,6 +47,13 @@ services:
 
     ezpublish.search.solr.core_filter:
         alias: ezpublish.search.solr.core_filter.native
+
+    ezpublish.search.solr.document_indexer:
+        class: %ezpublish.search.solr.document_indexer.class%
+        arguments:
+            - @ezpublish.search.solr.gateway
+            - @ezpublish.search.solr.document_mapper
+            - @ezpublish.search.solr.endpoint_resolver
 
     ezpublish.search.solr.document_mapper.native:
         class: %ezpublish.search.solr.document_mapper.native.class%
@@ -109,6 +117,7 @@ services:
             - @ezpublish.search.solr.result_extractor
             - @ezpublish.search.solr.core_filter
             - @ezpublish.search.solr.endpoint_resolver
+            - @ezpublish.search.solr.document_indexer
         tags:
             - {name: ezpublish.searchEngine, alias: solr}
         lazy: true
