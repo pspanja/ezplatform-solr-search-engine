@@ -102,6 +102,13 @@ class NativeCoreFilter extends CoreFilter
         }
 
         // Otherwise search only main languages
+
+        // 1. Main translations in main translation core if configured
+        if ($this->endpointResolver->hasMainLanguagesEndpoint()) {
+            return new IndexedMainTranslationCore(IndexedMainTranslationCore::MAIN_CORE);
+        }
+
+        // 2. Else just limited to main translations
         return new IndexedMainTranslation(IndexedMainTranslation::MAIN);
     }
 
