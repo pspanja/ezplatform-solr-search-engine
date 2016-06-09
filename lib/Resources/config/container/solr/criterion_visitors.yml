@@ -5,6 +5,7 @@ parameters:
     ezpublish.search.solr.query.common.internal.criterion_visitor.indexed_language_code.class: EzSystems\EzPlatformSolrSearchEngine\Query\Common\CriterionVisitor\Internal\IndexedLanguageCode
     ezpublish.search.solr.query.common.internal.criterion_visitor.indexed_main_translation.class: EzSystems\EzPlatformSolrSearchEngine\Query\Common\CriterionVisitor\Internal\IndexedMainTranslation
     ezpublish.search.solr.query.common.internal.criterion_visitor.indexed_main_translation_core.class: EzSystems\EzPlatformSolrSearchEngine\Query\Common\CriterionVisitor\Internal\IndexedMainTranslationCore
+    ezpublish.search.solr.query.common.internal.criterion_visitor.indexed_translation_core.class: EzSystems\EzPlatformSolrSearchEngine\Query\Common\CriterionVisitor\Internal\IndexedTranslationCore
     ezpublish.search.solr.query.common.internal.criterion_visitor.language_code.class: EzSystems\EzPlatformSolrSearchEngine\Query\Common\CriterionVisitor\Internal\LanguageCodeIn
     # Common
     ezpublish.search.solr.query.common.criterion_visitor.content_id_in.class: EzSystems\EzPlatformSolrSearchEngine\Query\Common\CriterionVisitor\ContentIdIn
@@ -82,6 +83,12 @@ services:
 
     ezpublish.search.solr.query.common.internal.criterion_visitor.indexed_main_translation_core:
         class: %ezpublish.search.solr.query.common.internal.criterion_visitor.indexed_main_translation_core.class%
+        tags:
+            - {name: ezpublish.search.solr.query.content.criterion_visitor}
+            - {name: ezpublish.search.solr.query.location.criterion_visitor}
+
+    ezpublish.search.solr.query.common.internal.criterion_visitor.indexed_translation_core:
+        class: %ezpublish.search.solr.query.common.internal.criterion_visitor.indexed_translation_core.class%
         tags:
             - {name: ezpublish.search.solr.query.content.criterion_visitor}
             - {name: ezpublish.search.solr.query.location.criterion_visitor}

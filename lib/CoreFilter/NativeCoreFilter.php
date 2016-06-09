@@ -14,6 +14,7 @@ use EzSystems\EzPlatformSolrSearchEngine\API\Query\Criterion\DocumentTypeId;
 use EzSystems\EzPlatformSolrSearchEngine\API\Query\Criterion\LanguageCode;
 use EzSystems\EzPlatformSolrSearchEngine\API\Query\Criterion\IndexedMainTranslation;
 use EzSystems\EzPlatformSolrSearchEngine\API\Query\Criterion\IndexedMainTranslationCore;
+use EzSystems\EzPlatformSolrSearchEngine\API\Query\Criterion\IndexedTranslationCore;
 use EzSystems\EzPlatformSolrSearchEngine\API\Query\Criterion\IndexedAlwaysAvailable;
 use EzSystems\EzPlatformSolrSearchEngine\API\Query\Criterion\IndexedLanguageCode;
 use EzSystems\EzPlatformSolrSearchEngine\CoreFilter;
@@ -149,12 +150,9 @@ class NativeCoreFilter extends CoreFilter
             $languageFilters = array(new LogicalOr($languageFilters));
         }
 
-        // Exclude main languages index if used
-        if ($this->endpointResolver->hasMainLanguagesEndpoint()) {
-            $languageFilters[] = new LogicalNot(
-                new IndexedMainTranslationCore(IndexedMainTranslationCore::MAIN_CORE)
-            );
-        }
+        // Include only regular placement documents (including shared,
+        // exclude those indexed ONLY per-main-translation)
+        $languageFilters[] = new IndexedTranslationCore(IndexedTranslationCore::TRANSLATION_CORE);
 
         // Combine conditions
         if (count($languageFilters) > 1) {
