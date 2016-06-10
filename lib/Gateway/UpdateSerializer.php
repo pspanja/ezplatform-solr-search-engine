@@ -2,10 +2,10 @@
 
 namespace EzSystems\EzPlatformSolrSearchEngine\Gateway;
 
-use EzSystems\EzPlatformSolrSearchEngine\Block;
+use EzSystems\EzPlatformSolrSearchEngine\Values\Block;
+use EzSystems\EzPlatformSolrSearchEngine\Values\Document;
 use EzSystems\EzPlatformSolrSearchEngine\FieldValueMapper;
 use eZ\Publish\Core\Search\Common\FieldNameGenerator;
-use EzSystems\EzPlatformSolrSearchEngine\Document;
 use eZ\Publish\SPI\Search\Field;
 use eZ\Publish\SPI\Search\FieldType;
 use XMLWriter;
@@ -41,7 +41,7 @@ class UpdateSerializer
     /**
      * Create update XML for the given array of $documents.
      *
-     * @param \EzSystems\EzPlatformSolrSearchEngine\Document[] $documents
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Document[] $documents
      *
      * @return string
      */
@@ -119,7 +119,7 @@ class UpdateSerializer
      *
      * @param string $id
      *
-     * @return \EzSystems\EzPlatformSolrSearchEngine\Document
+     * @return \EzSystems\EzPlatformSolrSearchEngine\Values\Document
      */
     protected function getNestedDummyDocument($id)
     {

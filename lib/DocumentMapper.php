@@ -43,7 +43,7 @@ interface DocumentMapper
      *
      * @param \eZ\Publish\SPI\Persistence\Content $content
      *
-     * @return \EzSystems\EzPlatformSolrSearchEngine\Block[]
+     * @return \EzSystems\EzPlatformSolrSearchEngine\Values\Block[]
      */
     public function mapContentBlock(Content $content);
 

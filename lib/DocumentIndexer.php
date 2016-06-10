@@ -2,6 +2,7 @@
 
 namespace EzSystems\EzPlatformSolrSearchEngine;
 
+use EzSystems\EzPlatformSolrSearchEngine\Values\Block;
 use eZ\Publish\API\Repository\Values\Content\Query;
 use eZ\Publish\SPI\Search\Field;
 use eZ\Publish\SPI\Search\FieldType;
@@ -68,7 +69,7 @@ class DocumentIndexer
      * Maps blocks in the given $contentBlockGroups by the endpoint target that the
      * block is to be indexed in.
      *
-     * @param \EzSystems\EzPlatformSolrSearchEngine\Block[][] $contentBlockGroups
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Block[][] $contentBlockGroups
      *
      * @return \SplObjectStorage
      */
@@ -94,9 +95,9 @@ class DocumentIndexer
     /**
      * Maps blocks in the given $contentBlockGroups by the block translation language code.
      *
-     * @param \EzSystems\EzPlatformSolrSearchEngine\Block[][] $contentBlockGroups
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Block[][] $contentBlockGroups
      *
-     * @return \EzSystems\EzPlatformSolrSearchEngine\Block[][]
+     * @return \EzSystems\EzPlatformSolrSearchEngine\Values\Block[][]
      */
     private function mapTranslationBlocks(array $contentBlockGroups)
     {
@@ -129,7 +130,7 @@ class DocumentIndexer
         }
 
         foreach ($endpointBlockMap as $endpoint) {
-            /** @var \EzSystems\EzPlatformSolrSearchEngine\Block[] $blocks */
+            /** @var \EzSystems\EzPlatformSolrSearchEngine\Values\Block[] $blocks */
             $blocks = $endpointBlockMap[$endpoint];
             $sharedPlacement = ($endpoint === $mainTranslationEndpoint);
 
@@ -159,10 +160,10 @@ class DocumentIndexer
      * For the given array of $blocks, return an array of blocks to index as dedicated
      * main translations blocks.
      *
-     * @param \EzSystems\EzPlatformSolrSearchEngine\Block[] $blocks
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Block[] $blocks
      * @param bool $sharedPlacement
      *
-     * @return \EzSystems\EzPlatformSolrSearchEngine\Block[]
+     * @return \EzSystems\EzPlatformSolrSearchEngine\Values\Block[]
      */
     private function getMainTranslationDedicatedBlocks(array $blocks, $sharedPlacement)
     {
@@ -184,7 +185,7 @@ class DocumentIndexer
     /**
      * Add translation matching fields to the given array of $blocks.
      *
-     * @param \EzSystems\EzPlatformSolrSearchEngine\Block[] $blocks
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Block[] $blocks
      * @param bool $sharedPlacement
      */
     private function addTranslationMatchingFields(array $blocks, $sharedPlacement)
@@ -205,7 +206,7 @@ class DocumentIndexer
     /**
      * Add dedicated main translations matching fields to the given array of $blocks.
      *
-     * @param \EzSystems\EzPlatformSolrSearchEngine\Block[] $blocks
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Block[] $blocks
      */
     private function addMainTranslationDedicatedMatchingFields(array $blocks)
     {
@@ -262,9 +263,9 @@ class DocumentIndexer
      *
      * This will just clone the given block and change document ids to resolve conflicts.
      *
-     * @param \EzSystems\EzPlatformSolrSearchEngine\Block $block
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Block $block
      *
-     * @return \EzSystems\EzPlatformSolrSearchEngine\Block
+     * @return \EzSystems\EzPlatformSolrSearchEngine\Values\Block
      */
     private function getMainTranslationBlock(Block $block)
     {

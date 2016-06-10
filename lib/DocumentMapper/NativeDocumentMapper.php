@@ -10,8 +10,8 @@
  */
 namespace EzSystems\EzPlatformSolrSearchEngine\DocumentMapper;
 
-use EzSystems\EzPlatformSolrSearchEngine\Block;
-use EzSystems\EzPlatformSolrSearchEngine\Document;
+use EzSystems\EzPlatformSolrSearchEngine\Values\Block;
+use EzSystems\EzPlatformSolrSearchEngine\Values\Document;
 use EzSystems\EzPlatformSolrSearchEngine\DocumentMapper\FieldMapper\Content as ContentFieldMapper;
 use EzSystems\EzPlatformSolrSearchEngine\DocumentMapper\FieldMapper\ContentTranslation as ContentTranslationFieldMapper;
 use EzSystems\EzPlatformSolrSearchEngine\DocumentMapper\FieldMapper\Location as LocationFieldMapper;

@@ -8,7 +8,7 @@
  *
  * @version //autogentag//
  */
-namespace EzSystems\EzPlatformSolrSearchEngine;
+namespace EzSystems\EzPlatformSolrSearchEngine\Values;
 
 use eZ\Publish\SPI\Persistence\ValueObject;
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace EzSystems\EzPlatformSolrSearchEngine;
+namespace EzSystems\EzPlatformSolrSearchEngine\Values;
 
 use eZ\Publish\SPI\Search\Document as SPIDocument;
 

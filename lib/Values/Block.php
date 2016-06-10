@@ -1,6 +1,6 @@
 <?php
 
-namespace EzSystems\EzPlatformSolrSearchEngine;
+namespace EzSystems\EzPlatformSolrSearchEngine\Values;
 
 /**
  * Block represents a document containing nested documents.
@@ -32,7 +32,7 @@ class Block extends Document
     /**
      * An array of nested documents.
      *
-     * @var \EzSystems\EzPlatformSolrSearchEngine\Document[]
+     * @var \EzSystems\EzPlatformSolrSearchEngine\Values\Document[]
      */
     public $documents = [];
 

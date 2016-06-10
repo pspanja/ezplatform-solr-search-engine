@@ -11,6 +11,7 @@
 namespace EzSystems\EzPlatformSolrSearchEngine;
 
 use eZ\Publish\API\Repository\Values\Content\Query;
+use EzSystems\EzPlatformSolrSearchEngine\Values\Endpoint;
 
 /**
  * The Content Search Gateway provides the implementation for one database to
@@ -22,8 +23,8 @@ abstract class Gateway
      * Returns search hits for the given query.
      *
      * @param \eZ\Publish\API\Repository\Values\Content\Query $query
-     * @param \EzSystems\EzPlatformSolrSearchEngine\Endpoint $entryEndpoint
-     * @param \EzSystems\EzPlatformSolrSearchEngine\Endpoint[] $targetEndpoints
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Endpoint $entryEndpoint
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Endpoint[] $targetEndpoints
      *
      * @return mixed
      */
@@ -37,8 +38,8 @@ abstract class Gateway
      * Returns search hits for the given query.
      *
      * @param \eZ\Publish\API\Repository\Values\Content\Query $query
-     * @param \EzSystems\EzPlatformSolrSearchEngine\Endpoint $entryEndpoint
-     * @param \EzSystems\EzPlatformSolrSearchEngine\Endpoint[] $targetEndpoints
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Endpoint $entryEndpoint
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Endpoint[] $targetEndpoints
      *
      * @return mixed
      */
@@ -51,8 +52,8 @@ abstract class Gateway
     /**
      * Indexes given $documents in the given $endpoint.
      *
-     * @param \EzSystems\EzPlatformSolrSearchEngine\Document[] $documents
-     * @param \EzSystems\EzPlatformSolrSearchEngine\Endpoint $endpoint
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Document[] $documents
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Endpoint $endpoint
      */
     abstract public function bulkIndexDocuments(array $documents, Endpoint $endpoint);
 
@@ -60,14 +61,14 @@ abstract class Gateway
      * Deletes documents by the given $query.
      *
      * @param string $query
-     * @param \EzSystems\EzPlatformSolrSearchEngine\Endpoint[] $endpoints
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Endpoint[] $endpoints
      */
     abstract public function deleteByQuery($query, array $endpoints);
 
     /**
      * Purges all contents from the index.
      *
-     * @param \EzSystems\EzPlatformSolrSearchEngine\Endpoint[] $endpoints
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Endpoint[] $endpoints
      */
     abstract public function purgeIndex(array $endpoints);
 
@@ -78,7 +79,7 @@ abstract class Gateway
      * is actually written to the stable storage, it is only made available for search.
      * Passing true will also write the data to the safe storage, ensuring durability.
      *
-     * @param \EzSystems\EzPlatformSolrSearchEngine\Endpoint[] $endpoints
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Endpoint[] $endpoints
      * @param bool $flush
      */
     abstract public function commit(array $endpoints, $flush = false);

@@ -10,7 +10,7 @@
  */
 namespace EzSystems\EzPlatformSolrSearchEngine\Gateway;
 
-use EzSystems\EzPlatformSolrSearchEngine\Endpoint;
+use EzSystems\EzPlatformSolrSearchEngine\Values\Endpoint;
 use EzSystems\EzPlatformSolrSearchEngine\Gateway;
 use EzSystems\EzPlatformSolrSearchEngine\Query\QueryConverter;
 use eZ\Publish\API\Repository\Values\Content\Query;
@@ -73,8 +73,8 @@ class Native extends Gateway
      * Returns search hits for the given query.
      *
      * @param \eZ\Publish\API\Repository\Values\Content\Query $query
-     * @param \EzSystems\EzPlatformSolrSearchEngine\Endpoint $entryEndpoint
-     * @param \EzSystems\EzPlatformSolrSearchEngine\Endpoint[] $targetEndpoints
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Endpoint $entryEndpoint
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Endpoint[] $targetEndpoints
      *
      * @return mixed
      */
@@ -89,8 +89,8 @@ class Native extends Gateway
      * Returns search hits for the given query.
      *
      * @param \eZ\Publish\API\Repository\Values\Content\Query $query
-     * @param \EzSystems\EzPlatformSolrSearchEngine\Endpoint $entryEndpoint
-     * @param \EzSystems\EzPlatformSolrSearchEngine\Endpoint[] $targetEndpoints
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Endpoint $entryEndpoint
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Endpoint[] $targetEndpoints
      *
      * @return mixed
      */
@@ -105,7 +105,7 @@ class Native extends Gateway
      * Returns search hits for the given array of Solr query parameters.
      *
      * @param array $parameters
-     * @param \EzSystems\EzPlatformSolrSearchEngine\Endpoint $entryEndpoint
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Endpoint $entryEndpoint
      *
      * @return mixed
      */

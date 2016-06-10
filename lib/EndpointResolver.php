@@ -18,7 +18,7 @@ interface EndpointResolver
     /**
      * Returns name of the Endpoint used as entry point for distributed search.
      *
-     * @return \EzSystems\EzPlatformSolrSearchEngine\Endpoint
+     * @return \EzSystems\EzPlatformSolrSearchEngine\Values\Endpoint
      */
     public function getEntryEndpoint();
 
@@ -27,7 +27,7 @@ interface EndpointResolver
      *
      * @param string $languageCode
      *
-     * @return \EzSystems\EzPlatformSolrSearchEngine\Endpoint
+     * @return \EzSystems\EzPlatformSolrSearchEngine\Values\Endpoint
      */
     public function getIndexingTarget($languageCode);
 
@@ -41,7 +41,7 @@ interface EndpointResolver
     /**
      * Returns name of the Endpoint used to index translations in main languages.
      *
-     * @return \EzSystems\EzPlatformSolrSearchEngine\Endpoint
+     * @return \EzSystems\EzPlatformSolrSearchEngine\Values\Endpoint
      */
     public function getMainLanguagesEndpoint();
 
@@ -50,14 +50,14 @@ interface EndpointResolver
      *
      * @param array $languageSettings
      *
-     * @return \EzSystems\EzPlatformSolrSearchEngine\Endpoint[]
+     * @return \EzSystems\EzPlatformSolrSearchEngine\Values\Endpoint[]
      */
     public function getSearchTargets(array $languageSettings);
 
     /**
      * Returns names of all Endpoints.
      *
-     * @return \EzSystems\EzPlatformSolrSearchEngine\Endpoint[]
+     * @return \EzSystems\EzPlatformSolrSearchEngine\Values\Endpoint[]
      */
     public function getEndpoints();
 }

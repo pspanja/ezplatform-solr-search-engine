@@ -86,7 +86,7 @@ class NativeQueryConverter extends QueryConverter
     /**
      * Return 'shards' query parameter value for the given $targetEndpoints.
      *
-     * @param \EzSystems\EzPlatformSolrSearchEngine\Endpoint[] $targetEndpoints
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Endpoint[] $targetEndpoints
      *
      * @return string
      */

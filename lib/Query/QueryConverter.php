@@ -21,7 +21,7 @@ abstract class QueryConverter
      * Map query to a proper Solr representation.
      *
      * @param \eZ\Publish\API\Repository\Values\Content\Query $query
-     * @param \EzSystems\EzPlatformSolrSearchEngine\Endpoint[] $targetEndpoints
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Endpoint[] $targetEndpoints
      *
      * @return array
      */
