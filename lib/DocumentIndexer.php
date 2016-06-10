@@ -3,6 +3,7 @@
 namespace EzSystems\EzPlatformSolrSearchEngine;
 
 use EzSystems\EzPlatformSolrSearchEngine\Values\Block;
+use EzSystems\EzPlatformSolrSearchEngine\Values\Document;
 use eZ\Publish\API\Repository\Values\Content\Query;
 use eZ\Publish\SPI\Search\Field;
 use eZ\Publish\SPI\Search\FieldType;
@@ -132,6 +133,9 @@ class DocumentIndexer
         foreach ($endpointBlockMap as $endpoint) {
             /** @var \EzSystems\EzPlatformSolrSearchEngine\Values\Block[] $blocks */
             $blocks = $endpointBlockMap[$endpoint];
+
+            $this->addInternalIndexedFields($blocks);
+
             $sharedPlacement = ($endpoint === $mainTranslationEndpoint);
 
             $mainTranslationBlockGroups[] = $this->getMainTranslationDedicatedBlocks(
@@ -154,6 +158,81 @@ class DocumentIndexer
 
             $endpointBlockMap->attach($mainTranslationEndpoint, $mainTranslationBlocks);
         }
+    }
+
+    /**
+     * Adds internal fields to the given array of $blocks.
+     *
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Block[] $blocks
+     */
+    private function addInternalIndexedFields(array $blocks)
+    {
+        foreach ($blocks as $block) {
+            $blockInternalFields = $this->getBlockInternalFields($block);
+            $documentInternalFields = $this->getDocumentInternalFields($block);
+
+            $block->fields = array_merge(
+                $block->fields,
+                $blockInternalFields,
+                $documentInternalFields
+            );
+
+            foreach ($block->documents as $document) {
+                $documentInternalFields = $this->getDocumentInternalFields($document);
+
+                $document->fields = array_merge(
+                    $document->fields,
+                    $blockInternalFields,
+                    $documentInternalFields
+                );
+            }
+        }
+    }
+
+    /**
+     * Returns internal fields for the given $document.
+     *
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Document $document
+     *
+     * @return \eZ\Publish\SPI\Search\Field[]
+     */
+    private function getDocumentInternalFields(Document $document)
+    {
+        return [
+            new Field(
+                'document_type',
+                $document->documentTypeId,
+                new FieldType\IdentifierField()
+            ),
+        ];
+    }
+
+    /**
+     * Returns internal fields for the given $block.
+     *
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Block $block
+     *
+     * @return \eZ\Publish\SPI\Search\Field[]
+     */
+    private function getBlockInternalFields(Block $block)
+    {
+        return [
+            new Field(
+                'meta_indexed_language_code',
+                $block->languageCode,
+                new FieldType\StringField()
+            ),
+            new Field(
+                'meta_indexed_is_main_translation',
+                $block->isMainTranslation,
+                new FieldType\BooleanField()
+            ),
+            new Field(
+                'meta_indexed_is_main_translation_and_always_available',
+                $block->alwaysAvailable,
+                new FieldType\BooleanField()
+            ),
+        ];
     }
 
     /**
