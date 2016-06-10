@@ -10,6 +10,8 @@
  */
 namespace EzSystems\EzPlatformSolrSearchEngine\DocumentMapper;
 
+use EzSystems\EzPlatformSolrSearchEngine\Block;
+use EzSystems\EzPlatformSolrSearchEngine\Document;
 use EzSystems\EzPlatformSolrSearchEngine\DocumentMapper\FieldMapper\Content as ContentFieldMapper;
 use EzSystems\EzPlatformSolrSearchEngine\DocumentMapper\FieldMapper\ContentTranslation as ContentTranslationFieldMapper;
 use EzSystems\EzPlatformSolrSearchEngine\DocumentMapper\FieldMapper\Location as LocationFieldMapper;
@@ -18,7 +20,6 @@ use EzSystems\EzPlatformSolrSearchEngine\DocumentMapper;
 use eZ\Publish\SPI\Persistence\Content;
 use eZ\Publish\SPI\Persistence\Content\Location;
 use eZ\Publish\SPI\Persistence\Content\Location\Handler as LocationHandler;
-use eZ\Publish\SPI\Search\Document;
 use eZ\Publish\SPI\Search\Field;
 use eZ\Publish\SPI\Search\FieldType;
 
@@ -95,8 +96,8 @@ class NativeDocumentMapper implements DocumentMapper
         $locations = $this->locationHandler->loadLocationsByContent($contentInfo->id);
         $blockFields = $this->getBlockFields($content);
         $contentFields = $this->getContentFields($content);
-        $documents = [];
         $locationFieldsMap = [];
+        $blocks = [];
 
         foreach ($locations as $location) {
             $locationFieldsMap[$location->id] = $this->getLocationFields($location);
@@ -112,6 +113,7 @@ class NativeDocumentMapper implements DocumentMapper
                 $translationLocationDocuments[] = new Document(
                     array(
                         'id' => $this->generateLocationDocumentId($location->id, $languageCode),
+                        'documentTypeId' => self::DOCUMENT_TYPE_IDENTIFIER_LOCATION,
                         'fields' => array_merge(
                             $blockFields,
                             $locationFieldsMap[$location->id],
@@ -136,24 +138,25 @@ class NativeDocumentMapper implements DocumentMapper
                 $translationLocationDocuments[] = $this->getDummyDocument($documentId);
             }
 
-            $documents[] = new Document(
+            $blocks[] = new Block(
                 array(
-                    'id' => $documentId,
+                    'id' => $this->generateContentDocumentId($contentInfo->id, $languageCode),
+                    'documentTypeId' => self::DOCUMENT_TYPE_IDENTIFIER_CONTENT,
                     'languageCode' => $languageCode,
                     'alwaysAvailable' => $alwaysAvailable,
                     'isMainTranslation' => $isMainTranslation,
+                    'documents' => $translationLocationDocuments,
                     'fields' => array_merge(
                         $blockFields,
                         $contentFields,
                         $blockTranslationFields,
                         $contentTranslationFields
                     ),
-                    'documents' => $translationLocationDocuments,
                 )
             );
         }
 
-        return $documents;
+        return $blocks;
     }
 
     public function generateContentDocumentId($contentId, $languageCode = null)
