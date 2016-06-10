@@ -50,6 +50,16 @@ abstract class Gateway
     );
 
     /**
+     * Returns search hits for the given array of Solr query parameters.
+     *
+     * @param array $parameters
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Endpoint $entryEndpoint
+     *
+     * @return mixed
+     */
+    abstract public function rawFind(array $parameters, Endpoint $entryEndpoint);
+
+    /**
      * Indexes given $documents in the given $endpoint.
      *
      * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Document[] $documents

@@ -82,7 +82,7 @@ class Native extends Gateway
     {
         $parameters = $this->contentQueryConverter->convert($query, $targetEndpoints);
 
-        return $this->internalFind($parameters, $entryEndpoint);
+        return $this->rawFind($parameters, $entryEndpoint);
     }
 
     /**
@@ -98,7 +98,7 @@ class Native extends Gateway
     {
         $parameters = $this->locationQueryConverter->convert($query, $targetEndpoints);
 
-        return $this->internalFind($parameters, $entryEndpoint);
+        return $this->rawFind($parameters, $entryEndpoint);
     }
 
     /**
@@ -109,7 +109,7 @@ class Native extends Gateway
      *
      * @return mixed
      */
-    protected function internalFind(array $parameters, Endpoint $entryEndpoint)
+    public function rawFind(array $parameters, Endpoint $entryEndpoint)
     {
         $queryString = $this->generateQueryString($parameters);
 
