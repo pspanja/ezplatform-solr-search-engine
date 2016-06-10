@@ -13,8 +13,7 @@ namespace EzSystems\EzPlatformSolrSearchEngine\CoreFilter;
 use EzSystems\EzPlatformSolrSearchEngine\Values\Query\Criterion\DocumentTypeId;
 use EzSystems\EzPlatformSolrSearchEngine\Values\Query\Criterion\LanguageCode;
 use EzSystems\EzPlatformSolrSearchEngine\Values\Query\Criterion\IndexedMainTranslation;
-use EzSystems\EzPlatformSolrSearchEngine\Values\Query\Criterion\IndexedMainTranslationCore;
-use EzSystems\EzPlatformSolrSearchEngine\Values\Query\Criterion\IndexedTranslationCore;
+use EzSystems\EzPlatformSolrSearchEngine\Values\Query\Criterion\TranslationCorePlacement;
 use EzSystems\EzPlatformSolrSearchEngine\Values\Query\Criterion\IndexedAlwaysAvailable;
 use EzSystems\EzPlatformSolrSearchEngine\Values\Query\Criterion\IndexedLanguageCode;
 use EzSystems\EzPlatformSolrSearchEngine\CoreFilter;
@@ -106,7 +105,7 @@ class NativeCoreFilter extends CoreFilter
 
         // 1. Main translations in main translation core if configured
         if ($this->endpointResolver->hasMainLanguagesEndpoint()) {
-            return new IndexedMainTranslationCore(IndexedMainTranslationCore::MAIN_CORE);
+            return new TranslationCorePlacement(TranslationCorePlacement::IN_MAIN_TRANSLATION_CORE);
         }
 
         // 2. Else just limited to main translations
@@ -151,8 +150,10 @@ class NativeCoreFilter extends CoreFilter
         }
 
         // Include only regular placement documents (including shared,
-        // exclude those indexed ONLY per-main-translation)
-        $languageFilters[] = new IndexedTranslationCore(IndexedTranslationCore::TRANSLATION_CORE);
+        // exclude those indexed ONLY for main translation)
+        $languageFilters[] = new TranslationCorePlacement(
+            TranslationCorePlacement::IN_REGULAR_TRANSLATION_CORE
+        );
 
         // Combine conditions
         if (count($languageFilters) > 1) {
@@ -180,9 +181,11 @@ class NativeCoreFilter extends CoreFilter
             ),
         );
 
-        // Additionally include only from main translations core if used
+        // Additionally include only main translations from main translations core if used
         if ($this->endpointResolver->hasMainLanguagesEndpoint()) {
-            $conditions[] = new IndexedMainTranslationCore(IndexedMainTranslationCore::MAIN_CORE);
+            $conditions[] = new TranslationCorePlacement(
+                TranslationCorePlacement::IN_MAIN_TRANSLATION_CORE
+            );
         }
 
         // Combine conditions

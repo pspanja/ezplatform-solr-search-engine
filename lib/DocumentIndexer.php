@@ -143,12 +143,12 @@ class DocumentIndexer
                 $sharedPlacement
             );
 
-            $this->addTranslationMatchingFields($blocks, $sharedPlacement);
+            $this->addTranslationCorePlacementFields($blocks, $sharedPlacement);
         }
 
         $mainTranslationBlocks = array_merge(...$mainTranslationBlockGroups);
 
-        $this->addMainTranslationDedicatedMatchingFields($mainTranslationBlocks);
+        $this->addMainTranslationDedicatedCorePlacementFields($mainTranslationBlocks);
 
         if (!empty($mainTranslationBlocks)) {
             if ($endpointBlockMap->contains($mainTranslationEndpoint)) {
@@ -267,10 +267,10 @@ class DocumentIndexer
      * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Block[] $blocks
      * @param bool $sharedPlacement
      */
-    private function addTranslationMatchingFields(array $blocks, $sharedPlacement)
+    private function addTranslationCorePlacementFields(array $blocks, $sharedPlacement)
     {
         foreach ($blocks as $block) {
-            $internalFields = $this->getTranslationMatchingFields(
+            $internalFields = $this->getTranslationCorePlacementFields(
                 true,
                 $block->isMainTranslation && $sharedPlacement
             );
@@ -287,9 +287,9 @@ class DocumentIndexer
      *
      * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Block[] $blocks
      */
-    private function addMainTranslationDedicatedMatchingFields(array $blocks)
+    private function addMainTranslationDedicatedCorePlacementFields(array $blocks)
     {
-        $internalFields = $this->getTranslationMatchingFields(false, true);
+        $internalFields = $this->getTranslationCorePlacementFields(false, true);
 
         foreach ($blocks as $block) {
             $block->fields = array_merge($block->fields, $internalFields);
@@ -301,7 +301,7 @@ class DocumentIndexer
     }
 
     /**
-     * Return document fields used for translation matching.
+     * Return document fields used for translation matching through core placement.
      *
      * Two fields are returned:
      *
@@ -321,7 +321,7 @@ class DocumentIndexer
      *
      * @return \eZ\Publish\SPI\Search\Field[]
      */
-    private function getTranslationMatchingFields($regularTranslation, $mainTranslation)
+    private function getTranslationCorePlacementFields($regularTranslation, $mainTranslation)
     {
         return [
             new Field(
