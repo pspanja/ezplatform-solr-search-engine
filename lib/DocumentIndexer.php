@@ -1,32 +1,24 @@
 <?php
 
-/**
- * This file is part of the eZ Platform Solr Search Engine package.
- *
- * @copyright Copyright (C) eZ Systems AS. All rights reserved.
- * @license For full copyright and license information view LICENSE file distributed with this source code.
- *
- * @version //autogentag//
- */
 namespace EzSystems\EzPlatformSolrSearchEngine;
 
 use eZ\Publish\API\Repository\Values\Content\Query;
+use eZ\Publish\SPI\Search\Field;
+use eZ\Publish\SPI\Search\FieldType;
 use SplObjectStorage;
 
 /**
+ * Document indexer maps Content items to documents, prepares and indexes
+ * mapped documents to the Solr backend.
  */
 class DocumentIndexer
 {
     /**
-     * Content locator gateway.
-     *
      * @var \EzSystems\EzPlatformSolrSearchEngine\Gateway
      */
     protected $gateway;
 
     /**
-     * Document mapper.
-     *
      * @var \EzSystems\EzPlatformSolrSearchEngine\DocumentMapper
      */
     protected $mapper;
@@ -52,95 +44,238 @@ class DocumentIndexer
     }
 
     /**
-     * @param \eZ\Publish\SPI\Persistence\Content[] $contentObjects
+     * Indexes the given array of Content items.
+     *
+     * @param \eZ\Publish\SPI\Persistence\Content[] $contentItems
      */
-    public function bulkIndexContent(array $contentObjects)
+    public function bulkIndexContent(array $contentItems)
     {
-        $documents = [];
-
-        foreach ($contentObjects as $content) {
-            $documents[] = $this->mapper->mapContentBlock($content);
+        $contentBlockGroups = [];
+        foreach ($contentItems as $content) {
+            $contentBlockGroups[] = $this->mapper->mapContentBlock($content);
         }
 
-        $mainTranslationsDocuments = $this->getMainTranslationCoreDocuments($documents);
-        $endpointDocumentMap = $this->getEndpointDocumentMap($documents, $mainTranslationsDocuments);
+        $endpointBlockMap = $this->mapEndpointBlocks($contentBlockGroups);
 
-        foreach ($endpointDocumentMap as $endpoint) {
-            $this->gateway->bulkIndexDocuments($endpointDocumentMap[$endpoint], $endpoint);
+        $this->prepare($endpointBlockMap);
+
+        foreach ($endpointBlockMap as $endpoint) {
+            $this->gateway->bulkIndexDocuments($endpointBlockMap[$endpoint], $endpoint);
         }
     }
 
     /**
-     * @param array $documents
-     * @param array $mainTranslationsDocuments
+     * Maps blocks in the given $contentBlockGroups by the endpoint target that the
+     * block is to be indexed in.
+     *
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Block[][] $contentBlockGroups
      *
      * @return \SplObjectStorage
      */
-    private function getEndpointDocumentMap(array $documents, array $mainTranslationsDocuments)
+    private function mapEndpointBlocks(array $contentBlockGroups)
     {
-        $translationDocumentMap = $this->getTranslationDocumentMap($documents);
-        $endpointDocumentMap = new SplObjectStorage();
+        $endpointBlockMap = new SplObjectStorage();
+        $translationBlockMap = $this->mapTranslationBlocks($contentBlockGroups);
 
-        foreach ($translationDocumentMap as $languageCode => $translationDocuments) {
-            $languageTarget = $this->endpointResolver->getIndexingTarget($languageCode);
+        foreach ($translationBlockMap as $languageCode => $blocks) {
+            $endpoint = $this->endpointResolver->getIndexingTarget($languageCode);
 
-            if ($endpointDocumentMap->contains($languageTarget)) {
-                $existingTranslationDocuments = $endpointDocumentMap[$languageTarget];
-                $translationDocuments = array_merge($translationDocuments, $existingTranslationDocuments);
+            if ($endpointBlockMap->contains($endpoint)) {
+                $endpointBlocks = $endpointBlockMap[$endpoint];
+                $blocks = array_merge($blocks, $endpointBlocks);
             }
 
-            $endpointDocumentMap->attach($languageTarget, $translationDocuments);
+            $endpointBlockMap->attach($endpoint, $blocks);
         }
 
-        if (!empty($mainTranslationsDocuments)) {
-            $mainTranslationsEndpoint = $this->endpointResolver->getMainLanguagesEndpoint();
-
-            if ($endpointDocumentMap->contains($mainTranslationsEndpoint)) {
-                $existingDocuments = $endpointDocumentMap[$mainTranslationsEndpoint];
-                $mainTranslationsDocuments = array_merge($mainTranslationsDocuments, $existingDocuments);
-            }
-
-            $endpointDocumentMap->attach($mainTranslationsEndpoint, $mainTranslationsDocuments);
-        }
-
-        return $endpointDocumentMap;
+        return $endpointBlockMap;
     }
 
     /**
-     * @param array $documents
+     * Maps blocks in the given $contentBlockGroups by the block translation language code.
      *
-     * @return array
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Block[][] $contentBlockGroups
+     *
+     * @return \EzSystems\EzPlatformSolrSearchEngine\Block[][]
      */
-    private function getTranslationDocumentMap(array $documents)
+    private function mapTranslationBlocks(array $contentBlockGroups)
     {
-        $documentMap = [];
+        $blockMap = [];
 
-        foreach ($documents as $translationDocuments) {
-            foreach ($translationDocuments as $document) {
-                $documentMap[$document->languageCode][] = $document;
+        foreach ($contentBlockGroups as $contentBlocks) {
+            foreach ($contentBlocks as $block) {
+                $blockMap[$block->languageCode][] = $block;
             }
         }
 
-        return $documentMap;
+        return $blockMap;
     }
 
     /**
-     * @param array $documents
+     * Prepare endpoint to block map, which includes:
      *
-     * @return array
+     *  - if needed: adding documents to be indexed for dedicated main translations matching
+     *  - always: adding fields that indicate document's translation matching placement (regular,
+     *    main translations or shared for both)
+     *
+     * @param \SplObjectStorage $endpointBlockMap
      */
-    private function getMainTranslationCoreDocuments(array $documents)
+    private function prepare(SplObjectStorage $endpointBlockMap)
     {
-        $mainTranslationsDocuments = [];
+        $mainTranslationBlockGroups = [[]];
+        $mainTranslationEndpoint = null;
+        if ($this->endpointResolver->hasMainLanguagesEndpoint()) {
+            $mainTranslationEndpoint = $this->endpointResolver->getMainLanguagesEndpoint();
+        }
 
-        foreach ($documents as $translationDocuments) {
-            foreach ($translationDocuments as $document) {
-                if ($this->endpointResolver->hasMainLanguagesEndpoint() && $document->isMainTranslation) {
-                    $mainTranslationsDocuments[] = $this->mapper->getMainTranslationDocument($document);
-                }
+        foreach ($endpointBlockMap as $endpoint) {
+            /** @var \EzSystems\EzPlatformSolrSearchEngine\Block[] $blocks */
+            $blocks = $endpointBlockMap[$endpoint];
+            $sharedPlacement = ($endpoint === $mainTranslationEndpoint);
+
+            $mainTranslationBlockGroups[] = $this->getMainTranslationDedicatedBlocks(
+                $blocks,
+                $sharedPlacement
+            );
+
+            $this->addTranslationMatchingFields($blocks, $sharedPlacement);
+        }
+
+        $mainTranslationBlocks = array_merge(...$mainTranslationBlockGroups);
+
+        $this->addMainTranslationDedicatedMatchingFields($mainTranslationBlocks);
+
+        if (!empty($mainTranslationBlocks)) {
+            if ($endpointBlockMap->contains($mainTranslationEndpoint)) {
+                $endpointBlocks = $endpointBlockMap[$mainTranslationEndpoint];
+                $mainTranslationBlocks = array_merge($mainTranslationBlocks, $endpointBlocks);
+            }
+
+            $endpointBlockMap->attach($mainTranslationEndpoint, $mainTranslationBlocks);
+        }
+    }
+
+    /**
+     * For the given array of $blocks, return an array of blocks to index as dedicated
+     * main translations blocks.
+     *
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Block[] $blocks
+     * @param bool $sharedPlacement
+     *
+     * @return \EzSystems\EzPlatformSolrSearchEngine\Block[]
+     */
+    private function getMainTranslationDedicatedBlocks(array $blocks, $sharedPlacement)
+    {
+        $mainTranslationBlocks = [];
+
+        if (!$this->endpointResolver->hasMainLanguagesEndpoint()) {
+            return $mainTranslationBlocks;
+        }
+
+        foreach ($blocks as $block) {
+            if ($block->isMainTranslation && !$sharedPlacement) {
+                $mainTranslationBlocks[] = $this->getMainTranslationBlock($block);
             }
         }
 
-        return $mainTranslationsDocuments;
+        return $mainTranslationBlocks;
+    }
+
+    /**
+     * Add translation matching fields to the given array of $blocks.
+     *
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Block[] $blocks
+     * @param bool $sharedPlacement
+     */
+    private function addTranslationMatchingFields(array $blocks, $sharedPlacement)
+    {
+        foreach ($blocks as $block) {
+            $internalFields = $this->getTranslationMatchingFields(
+                true,
+                $block->isMainTranslation && $sharedPlacement
+            );
+            $block->fields = array_merge($block->fields, $internalFields);
+
+            foreach ($block->documents as $document) {
+                $document->fields = array_merge($document->fields, $internalFields);
+            }
+        }
+    }
+
+    /**
+     * Add dedicated main translations matching fields to the given array of $blocks.
+     *
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Block[] $blocks
+     */
+    private function addMainTranslationDedicatedMatchingFields(array $blocks)
+    {
+        $internalFields = $this->getTranslationMatchingFields(false, true);
+
+        foreach ($blocks as $block) {
+            $block->fields = array_merge($block->fields, $internalFields);
+
+            foreach ($block->documents as $document) {
+                $document->fields = array_merge($document->fields, $internalFields);
+            }
+        }
+    }
+
+    /**
+     * Return document fields used for translation matching.
+     *
+     * Two fields are returned:
+     *
+     *  - first field indicates if the document is matched for regular translations
+     *  - second field indicates if the document is matched for main translations
+     *
+     * Together, three combinations are valid:
+     *
+     *  1. matching only for regular translations (true, false)
+     *  2. matching only for main translations (false, true)
+     *  3. shared - matching for both regular and main translations (true, true)
+     *
+     * Fourth combination (false, false) never happens.
+     *
+     * @param bool $regularTranslation
+     * @param bool $mainTranslation
+     *
+     * @return \eZ\Publish\SPI\Search\Field[]
+     */
+    private function getTranslationMatchingFields($regularTranslation, $mainTranslation)
+    {
+        return [
+            new Field(
+                'meta_indexed_translation',
+                $regularTranslation,
+                new FieldType\BooleanField()
+            ),
+            new Field(
+                'meta_indexed_main_translation',
+                $mainTranslation,
+                new FieldType\BooleanField()
+            )
+        ];
+    }
+
+    /**
+     * For the given $block return a block to index as a dedicated main translation block.
+     *
+     * This will just clone the given block and change document ids to resolve conflicts.
+     *
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Block $block
+     *
+     * @return \EzSystems\EzPlatformSolrSearchEngine\Block
+     */
+    private function getMainTranslationBlock(Block $block)
+    {
+        $block = clone $block;
+
+        $block->id .= 'mt';
+
+        foreach ($block->documents as $document) {
+            $document->id .= 'mt';
+        }
+
+        return $block;
     }
 }
