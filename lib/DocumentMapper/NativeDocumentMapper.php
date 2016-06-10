@@ -127,16 +127,6 @@ class NativeDocumentMapper implements DocumentMapper
             $isMainTranslation = ($contentInfo->mainLanguageCode === $languageCode);
             $alwaysAvailable = ($isMainTranslation && $contentInfo->alwaysAvailable);
             $contentTranslationFields = $this->getContentTranslationFields($content, $languageCode);
-            $documentId = $this->generateContentDocumentId($contentInfo->id, $languageCode);
-
-            // Index dummy nested document when there are no other nested documents.
-            // This is done in order to avoid the situation when previous standalone document is
-            // being re-indexed as a block-joined set of documents, or vice-versa.
-            // Enforcing document block in all cases ensures correct overwriting (updating) and
-            // avoiding multiple documents with the same ID.
-            if (empty($translationLocationDocuments)) {
-                $translationLocationDocuments[] = $this->getDummyDocument($documentId);
-            }
 
             $blocks[] = new Block(
                 array(
@@ -199,36 +189,6 @@ class NativeDocumentMapper implements DocumentMapper
         $document->documents = $subDocuments;
 
         return $document;
-    }
-
-    /**
-     * Returns a 'dummy' document.
-     *
-     * This is intended to be indexed as nested document of Content, in order to enforce
-     * document block when Content does not have other nested documents (Locations).
-     * Not intended to be returned as a search result.
-     *
-     * For more info see:
-     * @link http://grokbase.com/t/lucene/solr-user/14chqr73nv/converting-to-parent-child-block-indexing
-     * @link https://issues.apache.org/jira/browse/SOLR-5211
-     *
-     * @param string $id
-     * @return \eZ\Publish\SPI\Search\Document
-     */
-    private function getDummyDocument($id)
-    {
-        return new Document(
-            array(
-                'id' => $id . '_nested_dummy',
-                'fields' => array(
-                    new Field(
-                        'document_type',
-                        'nested_dummy',
-                        new FieldType\IdentifierField()
-                    ),
-                ),
-            )
-        );
     }
 
     /**

@@ -2,9 +2,10 @@
 
 namespace EzSystems\EzPlatformSolrSearchEngine\Gateway;
 
+use EzSystems\EzPlatformSolrSearchEngine\Block;
 use EzSystems\EzPlatformSolrSearchEngine\FieldValueMapper;
 use eZ\Publish\Core\Search\Common\FieldNameGenerator;
-use eZ\Publish\SPI\Search\Document;
+use EzSystems\EzPlatformSolrSearchEngine\Document;
 use eZ\Publish\SPI\Search\Field;
 use eZ\Publish\SPI\Search\FieldType;
 use XMLWriter;
@@ -40,7 +41,7 @@ class UpdateSerializer
     /**
      * Create update XML for the given array of $documents.
      *
-     * @param \eZ\Publish\SPI\Search\Document[] $documents
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Document[] $documents
      *
      * @return string
      */
@@ -76,8 +77,17 @@ class UpdateSerializer
             $this->writeField($xmlWriter, $field);
         }
 
-        foreach ($document->documents as $subDocument) {
-            $this->writeDocument($xmlWriter, $subDocument);
+        if ($document instanceof Block) {
+            if (empty($document->documents)) {
+                $this->writeDocument(
+                    $xmlWriter,
+                    $this->getNestedDummyDocument($document->id)
+                );
+            }
+
+            foreach ($document->documents as $subDocument) {
+                $this->writeDocument($xmlWriter, $subDocument);
+            }
         }
 
         $xmlWriter->endElement();
@@ -94,5 +104,36 @@ class UpdateSerializer
             $xmlWriter->text($value);
             $xmlWriter->endElement();
         }
+    }
+
+    /**
+     * Returns a 'dummy' document.
+     *
+     * This is intended to be indexed as nested document of Content, in order to enforce
+     * document block when Content does not have other nested documents (Locations).
+     * Not intended to be returned as a search result.
+     *
+     * For more info see:
+     * @link http://grokbase.com/t/lucene/solr-user/14chqr73nv/converting-to-parent-child-block-indexing
+     * @link https://issues.apache.org/jira/browse/SOLR-5211
+     *
+     * @param string $id
+     *
+     * @return \EzSystems\EzPlatformSolrSearchEngine\Document
+     */
+    protected function getNestedDummyDocument($id)
+    {
+        return new Document(
+            [
+                'id' => $id . '_nested_dummy',
+                'fields' => [
+                    new Field(
+                        'document_type',
+                        'nested_dummy',
+                        new FieldType\IdentifierField()
+                    ),
+                ],
+            ]
+        );
     }
 }
