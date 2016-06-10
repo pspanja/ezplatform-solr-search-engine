@@ -1,6 +1,6 @@
 <?php
 
-namespace EzSystems\EzPlatformSolrSearchEngine\API\Query\Criterion;
+namespace EzSystems\EzPlatformSolrSearchEngine\Values\Query\Criterion;
 
 use eZ\Publish\API\Repository\Values\Content\Query\Criterion;
 use eZ\Publish\API\Repository\Values\Content\Query\Criterion\Operator;
@@ -9,35 +9,35 @@ use eZ\Publish\API\Repository\Values\Content\Query\CriterionInterface;
 use InvalidArgumentException;
 
 /**
- * A criterion that matches a document based on whether it's indexed content translation
- * is the main translation of the content, marked as always available.
+ * A criterion that matches a document based on whether it's indexed content translation is the
+ * main translation of the content.
  */
-class IndexedAlwaysAvailable extends Criterion implements CriterionInterface
+class IndexedMainTranslation extends Criterion implements CriterionInterface
 {
     /**
-     * Always available constant: always available in it's main translation.
+     * Main content translation constant: main.
      */
-    const AVAILABLE = 0;
+    const MAIN = 0;
 
     /**
-     * Always available constant: not always available in it's main translation.
+     * Main content translation constant: not main.
      */
-    const NOT_AVAILABLE = 1;
+    const NOT_MAIN = 1;
 
     /**
      * @internal
      *
-     * Creates a new IndexedAlwaysAvailable criterion.
+     * Creates a new IndexedMainTranslation criterion.
      *
      * @throws \InvalidArgumentException
      *
-     * @param int $value Availability: self::ALWAYS_AVAILABLE, self::NOT_ALWAYS_AVAILABLE
+     * @param int $value Main content translation: self::MAIN, self::NOT_MAIN
      */
     public function __construct($value)
     {
-        if ($value !== self::AVAILABLE && $value !== self::NOT_AVAILABLE) {
+        if ($value !== self::MAIN && $value !== self::NOT_MAIN) {
             throw new InvalidArgumentException(
-                "Invalid always available value '{$value}'"
+                "Invalid main translation value '{$value}'"
             );
         }
 

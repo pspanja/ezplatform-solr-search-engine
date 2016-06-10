@@ -3,7 +3,7 @@
 namespace EzSystems\EzPlatformSolrSearchEngine\Query\Common\CriterionVisitor\Internal;
 
 use EzSystems\EzPlatformSolrSearchEngine\Query\CriterionVisitor;
-use EzSystems\EzPlatformSolrSearchEngine\API\Query\Criterion\IndexedMainTranslation as IndexedMainTranslationCriterion;
+use EzSystems\EzPlatformSolrSearchEngine\Values\Query\Criterion\IndexedMainTranslation as IndexedMainTranslationCriterion;
 use eZ\Publish\API\Repository\Values\Content\Query\Criterion;
 use eZ\Publish\API\Repository\Values\Content\Query\Criterion\Operator;
 

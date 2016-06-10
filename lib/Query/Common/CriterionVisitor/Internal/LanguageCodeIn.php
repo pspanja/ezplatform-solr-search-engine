@@ -2,7 +2,7 @@
 
 namespace EzSystems\EzPlatformSolrSearchEngine\Query\Common\CriterionVisitor\Internal;
 
-use EzSystems\EzPlatformSolrSearchEngine\API\Query\Criterion\LanguageCode;
+use EzSystems\EzPlatformSolrSearchEngine\Values\Query\Criterion\LanguageCode;
 use EzSystems\EzPlatformSolrSearchEngine\Query\CriterionVisitor;
 use eZ\Publish\API\Repository\Values\Content\Query\Criterion;
 use eZ\Publish\API\Repository\Values\Content\Query\Criterion\Operator;

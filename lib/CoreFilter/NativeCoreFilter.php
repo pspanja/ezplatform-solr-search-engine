@@ -10,13 +10,13 @@
  */
 namespace EzSystems\EzPlatformSolrSearchEngine\CoreFilter;
 
-use EzSystems\EzPlatformSolrSearchEngine\API\Query\Criterion\DocumentTypeId;
-use EzSystems\EzPlatformSolrSearchEngine\API\Query\Criterion\LanguageCode;
-use EzSystems\EzPlatformSolrSearchEngine\API\Query\Criterion\IndexedMainTranslation;
-use EzSystems\EzPlatformSolrSearchEngine\API\Query\Criterion\IndexedMainTranslationCore;
-use EzSystems\EzPlatformSolrSearchEngine\API\Query\Criterion\IndexedTranslationCore;
-use EzSystems\EzPlatformSolrSearchEngine\API\Query\Criterion\IndexedAlwaysAvailable;
-use EzSystems\EzPlatformSolrSearchEngine\API\Query\Criterion\IndexedLanguageCode;
+use EzSystems\EzPlatformSolrSearchEngine\Values\Query\Criterion\DocumentTypeId;
+use EzSystems\EzPlatformSolrSearchEngine\Values\Query\Criterion\LanguageCode;
+use EzSystems\EzPlatformSolrSearchEngine\Values\Query\Criterion\IndexedMainTranslation;
+use EzSystems\EzPlatformSolrSearchEngine\Values\Query\Criterion\IndexedMainTranslationCore;
+use EzSystems\EzPlatformSolrSearchEngine\Values\Query\Criterion\IndexedTranslationCore;
+use EzSystems\EzPlatformSolrSearchEngine\Values\Query\Criterion\IndexedAlwaysAvailable;
+use EzSystems\EzPlatformSolrSearchEngine\Values\Query\Criterion\IndexedLanguageCode;
 use EzSystems\EzPlatformSolrSearchEngine\CoreFilter;
 use EzSystems\EzPlatformSolrSearchEngine\EndpointResolver;
 use eZ\Publish\API\Repository\Values\Content\Query;

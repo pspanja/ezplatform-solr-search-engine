@@ -1,6 +1,6 @@
 <?php
 
-namespace EzSystems\EzPlatformSolrSearchEngine\API\Query\Criterion;
+namespace EzSystems\EzPlatformSolrSearchEngine\Values\Query\Criterion;
 
 use eZ\Publish\API\Repository\Values\Content\Query\Criterion;
 use eZ\Publish\API\Repository\Values\Content\Query\Criterion\Operator;

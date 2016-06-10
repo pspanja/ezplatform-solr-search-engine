@@ -1,6 +1,6 @@
 <?php
 
-namespace EzSystems\EzPlatformSolrSearchEngine\API\Query\Criterion;
+namespace EzSystems\EzPlatformSolrSearchEngine\Values\Query\Criterion;
 
 use eZ\Publish\API\Repository\Values\Content\Query\Criterion;
 use eZ\Publish\API\Repository\Values\Content\Query\Criterion\Operator;
@@ -9,35 +9,35 @@ use eZ\Publish\API\Repository\Values\Content\Query\CriterionInterface;
 use InvalidArgumentException;
 
 /**
- * A criterion that matches a document based on whether it's indexed content translation is the
- * main translation of the content.
+ * A criterion that matches a document based on whether it's indexed translation is
+ * indexed as a regular translation of the Content.
  */
-class IndexedMainTranslation extends Criterion implements CriterionInterface
+class IndexedTranslationCore extends Criterion implements CriterionInterface
 {
     /**
-     * Main content translation constant: main.
+     * Main content translation in main core placement constant: in main core.
      */
-    const MAIN = 0;
+    const TRANSLATION_CORE = 0;
 
     /**
-     * Main content translation constant: not main.
+     * Main content translation in main core placement constant: not in main core.
      */
-    const NOT_MAIN = 1;
+    const NOT_TRANSLATION_CORE = 1;
 
     /**
      * @internal
      *
-     * Creates a new IndexedMainTranslation criterion.
+     * Creates a new IndexedMainTranslationCore criterion.
      *
      * @throws \InvalidArgumentException
      *
-     * @param int $value Main content translation: self::MAIN, self::NOT_MAIN
+     * @param int $value Main translation in main core: self::TRANSLATION_CORE, self::NOT_TRANSLATION_CORE
      */
     public function __construct($value)
     {
-        if ($value !== self::MAIN && $value !== self::NOT_MAIN) {
+        if ($value !== self::TRANSLATION_CORE && $value !== self::NOT_TRANSLATION_CORE) {
             throw new InvalidArgumentException(
-                "Invalid main translation value '{$value}'"
+                "Invalid main translation core value '{$value}'"
             );
         }
 

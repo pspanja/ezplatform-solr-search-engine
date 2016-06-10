@@ -1,6 +1,6 @@
 <?php
 
-namespace EzSystems\EzPlatformSolrSearchEngine\API\Query\Criterion;
+namespace EzSystems\EzPlatformSolrSearchEngine\Values\Query\Criterion;
 
 use eZ\Publish\API\Repository\Values\Content\Query\Criterion;
 use eZ\Publish\API\Repository\Values\Content\Query\Criterion\Operator;
@@ -9,35 +9,35 @@ use eZ\Publish\API\Repository\Values\Content\Query\CriterionInterface;
 use InvalidArgumentException;
 
 /**
- * A criterion that matches a document based on whether it's indexed translation is
- * indexed as a regular translation of the Content.
+ * A criterion that matches a document based on whether it's indexed content translation
+ * is the main translation of the content, marked as always available.
  */
-class IndexedTranslationCore extends Criterion implements CriterionInterface
+class IndexedAlwaysAvailable extends Criterion implements CriterionInterface
 {
     /**
-     * Main content translation in main core placement constant: in main core.
+     * Always available constant: always available in it's main translation.
      */
-    const TRANSLATION_CORE = 0;
+    const AVAILABLE = 0;
 
     /**
-     * Main content translation in main core placement constant: not in main core.
+     * Always available constant: not always available in it's main translation.
      */
-    const NOT_TRANSLATION_CORE = 1;
+    const NOT_AVAILABLE = 1;
 
     /**
      * @internal
      *
-     * Creates a new IndexedMainTranslationCore criterion.
+     * Creates a new IndexedAlwaysAvailable criterion.
      *
      * @throws \InvalidArgumentException
      *
-     * @param int $value Main translation in main core: self::TRANSLATION_CORE, self::NOT_TRANSLATION_CORE
+     * @param int $value Availability: self::ALWAYS_AVAILABLE, self::NOT_ALWAYS_AVAILABLE
      */
     public function __construct($value)
     {
-        if ($value !== self::TRANSLATION_CORE && $value !== self::NOT_TRANSLATION_CORE) {
+        if ($value !== self::AVAILABLE && $value !== self::NOT_AVAILABLE) {
             throw new InvalidArgumentException(
-                "Invalid main translation core value '{$value}'"
+                "Invalid always available value '{$value}'"
             );
         }
 
