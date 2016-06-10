@@ -49,12 +49,9 @@ abstract class Gateway
     );
 
     /**
-     * Indexes an array of documents.
+     * Indexes given $documents in the given $endpoint.
      *
-     * Documents are given as an array of the array of documents. The array of documents
-     * holds documents for all translations of the particular entity.
-     *
-     * @param \eZ\Publish\SPI\Search\Document[] $documents
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Document[] $documents
      * @param \EzSystems\EzPlatformSolrSearchEngine\Endpoint $endpoint
      */
     abstract public function bulkIndexDocuments(array $documents, Endpoint $endpoint);

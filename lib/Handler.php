@@ -261,7 +261,7 @@ class Handler implements SearchHandlerInterface
      *
      * @todo: This method, {@see purgeIndex}, & {@see commit()} is needed for being able to bulk index content.
      *       However it is not added to an official SPI interface yet as we anticipate adding a bulkIndexDocument
-     *       using eZ\Publish\SPI\Search\Document instead of bulkIndexContent based on Content objects. However
+     *       using EzSystems\EzPlatformSolrSearchEngine\Document instead of bulkIndexContent based on Content objects. However
      *       that won't be added until we have several stable or close to stable advance search engines to make
      *       sure we match the features of these.
      *       See also {@see Solr\Content\Search\Gateway\Native::bulkIndexContent} for further Solr specific info.
