@@ -20,8 +20,6 @@ use EzSystems\EzPlatformSolrSearchEngine\DocumentMapper;
 use eZ\Publish\SPI\Persistence\Content;
 use eZ\Publish\SPI\Persistence\Content\Location;
 use eZ\Publish\SPI\Persistence\Content\Location\Handler as LocationHandler;
-use eZ\Publish\SPI\Search\Field;
-use eZ\Publish\SPI\Search\FieldType;
 
 /**
  * NativeDocumentMapper maps Solr backend documents per Content translation.
@@ -157,38 +155,6 @@ class NativeDocumentMapper implements DocumentMapper
     public function generateLocationDocumentId($locationId, $languageCode = null)
     {
         return strtolower("location{$locationId}{$languageCode}");
-    }
-
-    public function getMainTranslationDocument(Document $document)
-    {
-        // Clone to prevent mutation
-        $document = clone $document;
-        $subDocuments = array();
-
-        $document->id .= 'mt';
-        $document->fields[] = new Field(
-            'meta_indexed_main_translation',
-            true,
-            new FieldType\BooleanField()
-        );
-
-        foreach ($document->documents as $subDocument) {
-            // Clone to prevent mutation
-            $subDocument = clone $subDocument;
-
-            $subDocument->id .= 'mt';
-            $subDocument->fields[] = new Field(
-                'meta_indexed_main_translation',
-                true,
-                new FieldType\BooleanField()
-            );
-
-            $subDocuments[] = $subDocument;
-        }
-
-        $document->documents = $subDocuments;
-
-        return $document;
     }
 
     /**
