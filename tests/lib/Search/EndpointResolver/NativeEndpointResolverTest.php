@@ -10,12 +10,14 @@
  */
 namespace EzSystems\EzPlatformSolrSearchEngine\Tests\Search\EndpointResolver;
 
+use EzSystems\EzPlatformSolrSearchEngine\EndpointRegistry;
 use EzSystems\EzPlatformSolrSearchEngine\EndpointResolver\NativeEndpointResolver;
 use EzSystems\EzPlatformSolrSearchEngine\Tests\Search\TestCase;
+use EzSystems\EzPlatformSolrSearchEngine\Values\Endpoint;
 use RuntimeException;
 
 /**
- * Test case for native endpoint resolver.
+ * Test case for the native endpoint resolver.
  */
 class NativeEndpointResolverTest extends TestCase
 {
@@ -26,11 +28,12 @@ class NativeEndpointResolverTest extends TestCase
             'endpoint0',
             'endpoint1',
         );
+        $endpointRegistry = $this->getEndpointRegistry($entryEndpoints);
 
-        $endpointResolver = $this->getEndpointResolver($entryEndpoints);
+        $endpointResolver = $this->getEndpointResolver($endpointRegistry, $entryEndpoints);
 
-        $this->assertEquals(
-            'endpoint2',
+        $this->assertSame(
+            $endpointRegistry->getEndpoint('endpoint2'),
             $endpointResolver->getEntryEndpoint()
         );
     }
@@ -41,8 +44,9 @@ class NativeEndpointResolverTest extends TestCase
     public function testGetEntryEndpointThrowsRuntimeException()
     {
         $entryEndpoints = array();
+        $endpointRegistry = $this->getEndpointRegistry($entryEndpoints);
 
-        $endpointResolver = $this->getEndpointResolver($entryEndpoints);
+        $endpointResolver = $this->getEndpointResolver($endpointRegistry, $entryEndpoints);
 
         $endpointResolver->getEntryEndpoint();
     }
@@ -52,11 +56,12 @@ class NativeEndpointResolverTest extends TestCase
         $endpointMap = array(
             'eng-GB' => 'endpoint3',
         );
+        $endpointRegistry = $this->getEndpointRegistry(array_values($endpointMap));
 
-        $endpointResolver = $this->getEndpointResolver(array(), $endpointMap);
+        $endpointResolver = $this->getEndpointResolver($endpointRegistry, [], $endpointMap);
 
-        $this->assertEquals(
-            'endpoint3',
+        $this->assertSame(
+            $endpointRegistry->getEndpoint('endpoint3'),
             $endpointResolver->getIndexingTarget('eng-GB')
         );
     }
@@ -65,18 +70,28 @@ class NativeEndpointResolverTest extends TestCase
     {
         $endpointMap = array();
         $defaultEndpoint = 'endpoint4';
+        $endpointRegistry = $this->getEndpointRegistry([$defaultEndpoint]);
 
-        $endpointResolver = $this->getEndpointResolver(array(), $endpointMap, $defaultEndpoint);
+        $endpointResolver = $this->getEndpointResolver(
+            $endpointRegistry,
+            [],
+            $endpointMap,
+            $defaultEndpoint
+        );
 
-        $this->assertEquals(
-            'endpoint4',
+        $this->assertSame(
+            $endpointRegistry->getEndpoint($defaultEndpoint),
             $endpointResolver->getIndexingTarget('ger-DE')
         );
     }
 
-    public function getIndexingTargetThrowsRuntimeException()
+    /**
+     * @expectedException \RuntimeException
+     */
+    public function testGetIndexingTargetThrowsRuntimeException()
     {
-        $endpointResolver = $this->getEndpointResolver();
+        $endpointRegistry = $this->getEndpointRegistry([]);
+        $endpointResolver = $this->getEndpointResolver($endpointRegistry);
 
         $endpointResolver->getIndexingTarget('ger-DE');
     }
@@ -84,20 +99,31 @@ class NativeEndpointResolverTest extends TestCase
     public function testGetMainLanguagesEndpoint()
     {
         $mainLanguagesEndpoint = 'endpoint5';
+        $endpointRegistry = $this->getEndpointRegistry([$mainLanguagesEndpoint]);
 
-        $endpointResolver = $this->getEndpointResolver(array(), array(), null, $mainLanguagesEndpoint);
+        $endpointResolver = $this->getEndpointResolver(
+            $endpointRegistry,
+            [],
+            [],
+            null,
+            $mainLanguagesEndpoint
+        );
 
-        $this->assertEquals(
-            'endpoint5',
+        $this->assertSame(
+            $endpointRegistry->getEndpoint($mainLanguagesEndpoint),
             $endpointResolver->getMainLanguagesEndpoint()
         );
     }
 
-    public function testGetMainLanguagesEndpointReturnsNull()
+    /**
+     * @expectedException \OutOfBoundsException
+     */
+    public function testGetMainLanguagesEndpointThrowsOutOfBoundsException()
     {
-        $endpointResolver = $this->getEndpointResolver();
+        $endpointRegistry = $this->getEndpointRegistry([]);
+        $endpointResolver = $this->getEndpointResolver($endpointRegistry);
 
-        $this->assertNull($endpointResolver->getMainLanguagesEndpoint());
+        $endpointResolver->getMainLanguagesEndpoint();
     }
 
     public function providerForTestGetSearchTargets()
@@ -800,25 +826,31 @@ class NativeEndpointResolverTest extends TestCase
      * @param null|string $defaultEndpoint
      * @param null|string $mainLanguagesEndpoint
      * @param array $languageSettings
-     * @param string[] $expected
+     * @param string[] $expectedEndpointNames
      */
     public function testGetSearchTargets(
         $endpointMap,
         $defaultEndpoint,
         $mainLanguagesEndpoint,
         $languageSettings,
-        $expected
+        $expectedEndpointNames
     ) {
+        $endpointRegistry = $this->getEndpointRegistry(
+            $this->getFixtureEndpointNames($endpointMap, $defaultEndpoint, $mainLanguagesEndpoint)
+        );
+
         $endpointResolver = $this->getEndpointResolver(
-            array(),
+            $endpointRegistry,
+            [],
             $endpointMap,
             $defaultEndpoint,
             $mainLanguagesEndpoint
         );
 
-        $actual = $endpointResolver->getSearchTargets($languageSettings);
-
-        $this->assertEquals($expected, $actual);
+        $this->assertSame(
+            $this->getEndpointsByNames($endpointRegistry, $expectedEndpointNames),
+            $endpointResolver->getSearchTargets($languageSettings)
+        );
     }
 
     public function providerForTestGetSearchTargetsThrowsRuntimeException()
@@ -921,8 +953,13 @@ class NativeEndpointResolverTest extends TestCase
         $languageSettings,
         $message
     ) {
+        $endpointRegistry = $this->getEndpointRegistry(
+            $this->getFixtureEndpointNames($endpointMap, $defaultEndpoint, $mainLanguagesEndpoint)
+        );
+
         $endpointResolver = $this->getEndpointResolver(
-            array(),
+            $endpointRegistry,
+            [],
             $endpointMap,
             $defaultEndpoint,
             $mainLanguagesEndpoint
@@ -1007,24 +1044,30 @@ class NativeEndpointResolverTest extends TestCase
      * @param string[] $endpointMap
      * @param null|string $defaultEndpoint
      * @param null|string $mainLanguagesEndpoint
-     * @param string[] $expected
+     * @param string[] $expectedEndpointNames
      */
     public function testGetEndpoints(
         $endpointMap,
         $defaultEndpoint,
         $mainLanguagesEndpoint,
-        $expected
+        $expectedEndpointNames
     ) {
+        $endpointRegistry = $this->getEndpointRegistry(
+            $this->getFixtureEndpointNames($endpointMap, $defaultEndpoint, $mainLanguagesEndpoint)
+        );
+
         $endpointResolver = $this->getEndpointResolver(
-            array(),
+            $endpointRegistry,
+            [],
             $endpointMap,
             $defaultEndpoint,
             $mainLanguagesEndpoint
         );
 
-        $endpoints = $endpointResolver->getEndpoints();
-
-        $this->assertEquals($expected, $endpoints);
+        $this->assertSame(
+            $this->getEndpointsByNames($endpointRegistry, $expectedEndpointNames),
+            $endpointResolver->getEndpoints()
+        );
     }
 
     /**
@@ -1032,9 +1075,11 @@ class NativeEndpointResolverTest extends TestCase
      */
     public function testGetEndpointsThrowsRuntimeException()
     {
+        $endpointRegistry = $this->getEndpointRegistry([]);
         $endpointResolver = $this->getEndpointResolver(
-            array(),
-            array(),
+            $endpointRegistry,
+            [],
+            [],
             null,
             null
         );
@@ -1043,16 +1088,69 @@ class NativeEndpointResolverTest extends TestCase
     }
 
     protected function getEndpointResolver(
+        EndpointRegistry $registry,
         array $entryEndpoints = array(),
         array $endpointMap = array(),
         $defaultEndpoint = null,
         $mainLanguagesEndpoint = null
     ) {
         return new NativeEndpointResolver(
+            $registry,
             $entryEndpoints,
             $endpointMap,
             $defaultEndpoint,
             $mainLanguagesEndpoint
         );
+    }
+
+    protected function getEndpointRegistry(array $endpointNames)
+    {
+        $registry = new EndpointRegistry();
+
+        foreach ($endpointNames as $endpointName) {
+            $endpoint = new Endpoint(
+                [
+                    'scheme' => $endpointName,
+                    'user' => $endpointName,
+                    'pass' => $endpointName,
+                    'host' => $endpointName,
+                    'port' => $endpointName,
+                    'path' => $endpointName,
+                    'core' => $endpointName,
+                ]
+            );
+            $registry->registerEndpoint($endpointName, $endpoint);
+        }
+
+        return $registry;
+    }
+
+    protected function getFixtureEndpointNames(
+        array $endpointMap,
+        $defaultEndpoint,
+        $mainLanguagesEndpoint
+    ) {
+        $endpointNames = array_values($endpointMap);
+
+        if ($defaultEndpoint !== null) {
+            $endpointNames[] = $defaultEndpoint;
+        }
+
+        if ($mainLanguagesEndpoint !== null) {
+            $endpointNames[] = $mainLanguagesEndpoint;
+        }
+
+        return $endpointNames;
+    }
+
+    protected function getEndpointsByNames(EndpointRegistry $endpointRegistry, array $endpointNames)
+    {
+        $endpoints = [];
+
+        foreach ($endpointNames as $endpointName) {
+            $endpoints[] = $endpointRegistry->getEndpoint($endpointName);
+        }
+
+        return $endpoints;
     }
 }
