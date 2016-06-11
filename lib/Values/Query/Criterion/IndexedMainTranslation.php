@@ -17,12 +17,12 @@ class IndexedMainTranslation extends Criterion implements CriterionInterface
     /**
      * Main content translation constant: main.
      */
-    const MAIN = 0;
+    const MAIN_TRANSLATION = 0;
 
     /**
      * Main content translation constant: not main.
      */
-    const NOT_MAIN = 1;
+    const NOT_MAIN_TRANSLATION = 1;
 
     /**
      * @internal
@@ -35,7 +35,7 @@ class IndexedMainTranslation extends Criterion implements CriterionInterface
      */
     public function __construct($value)
     {
-        if ($value !== self::MAIN && $value !== self::NOT_MAIN) {
+        if ($value !== self::MAIN_TRANSLATION && $value !== self::NOT_MAIN_TRANSLATION) {
             throw new InvalidArgumentException(
                 "Invalid main translation value '{$value}'"
             );

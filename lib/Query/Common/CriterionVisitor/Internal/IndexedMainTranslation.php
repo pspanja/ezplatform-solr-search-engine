@@ -16,7 +16,7 @@ class IndexedMainTranslation extends CriterionVisitor
 
     public function visit(Criterion $criterion, CriterionVisitor $subVisitor = null)
     {
-        $value = ($criterion->value[0] === IndexedMainTranslationCriterion::MAIN ? 'true' : 'false');
+        $value = ($criterion->value[0] === IndexedMainTranslationCriterion::MAIN_TRANSLATION ? 'true' : 'false');
 
         return 'meta_indexed_is_main_translation_b:' . $value;
     }

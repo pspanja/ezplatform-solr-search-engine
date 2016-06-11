@@ -17,12 +17,12 @@ class IndexedAlwaysAvailable extends Criterion implements CriterionInterface
     /**
      * Always available constant: always available in it's main translation.
      */
-    const AVAILABLE = 0;
+    const ALWAYS_AVAILABLE = 0;
 
     /**
      * Always available constant: not always available in it's main translation.
      */
-    const NOT_AVAILABLE = 1;
+    const NOT_ALWAYS_AVAILABLE = 1;
 
     /**
      * @internal
@@ -35,7 +35,7 @@ class IndexedAlwaysAvailable extends Criterion implements CriterionInterface
      */
     public function __construct($value)
     {
-        if ($value !== self::AVAILABLE && $value !== self::NOT_AVAILABLE) {
+        if ($value !== self::ALWAYS_AVAILABLE && $value !== self::NOT_ALWAYS_AVAILABLE) {
             throw new InvalidArgumentException(
                 "Invalid always available value '{$value}'"
             );

@@ -109,7 +109,7 @@ class NativeCoreFilter extends CoreFilter
         }
 
         // 2. Else just limited to main translations
-        return new IndexedMainTranslation(IndexedMainTranslation::MAIN);
+        return new IndexedMainTranslation(IndexedMainTranslation::MAIN_TRANSLATION);
     }
 
     /**
@@ -174,7 +174,7 @@ class NativeCoreFilter extends CoreFilter
     {
         $conditions = array(
             // Include always available main language translations
-            new IndexedAlwaysAvailable(IndexedAlwaysAvailable::AVAILABLE),
+            new IndexedAlwaysAvailable(IndexedAlwaysAvailable::ALWAYS_AVAILABLE),
             // Exclude all given languages
             new LogicalNot(
                 new LanguageCode($languageCodes)

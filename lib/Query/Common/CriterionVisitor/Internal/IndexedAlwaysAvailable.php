@@ -16,7 +16,7 @@ class IndexedAlwaysAvailable extends CriterionVisitor
 
     public function visit(Criterion $criterion, CriterionVisitor $subVisitor = null)
     {
-        $value = ($criterion->value[0] === IndexedAlwaysAvailableCriterion::AVAILABLE ? 'true' : 'false');
+        $value = ($criterion->value[0] === IndexedAlwaysAvailableCriterion::ALWAYS_AVAILABLE ? 'true' : 'false');
 
         return 'meta_indexed_is_main_translation_and_always_available_b:' . $value;
     }
