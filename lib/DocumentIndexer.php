@@ -201,7 +201,7 @@ class DocumentIndexer
         return [
             new Field(
                 'document_type',
-                $document->documentTypeId,
+                $document->documentTypeIdentifier,
                 new FieldType\IdentifierField()
             ),
         ];

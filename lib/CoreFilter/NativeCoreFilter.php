@@ -10,7 +10,7 @@
  */
 namespace EzSystems\EzPlatformSolrSearchEngine\CoreFilter;
 
-use EzSystems\EzPlatformSolrSearchEngine\Values\Query\Criterion\DocumentTypeId;
+use EzSystems\EzPlatformSolrSearchEngine\Values\Query\Criterion\DocumentTypeIdentifier;
 use EzSystems\EzPlatformSolrSearchEngine\Values\Query\Criterion\LanguageCode;
 use EzSystems\EzPlatformSolrSearchEngine\Values\Query\Criterion\IndexedMainTranslation;
 use EzSystems\EzPlatformSolrSearchEngine\Values\Query\Criterion\TranslationCorePlacement;
@@ -61,7 +61,7 @@ class NativeCoreFilter extends CoreFilter
 
         $query->filter = new LogicalAnd(
             array(
-                new DocumentTypeId($documentTypeIdentifier),
+                new DocumentTypeIdentifier($documentTypeIdentifier),
                 $query->filter,
                 $this->getCoreCriterion($languages, $useAlwaysAvailable),
             )

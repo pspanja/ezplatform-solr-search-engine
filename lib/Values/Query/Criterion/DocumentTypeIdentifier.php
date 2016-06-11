@@ -8,21 +8,21 @@ use eZ\Publish\API\Repository\Values\Content\Query\Criterion\Operator\Specificat
 use eZ\Publish\API\Repository\Values\Content\Query\CriterionInterface;
 
 /**
- * A criterion that matches a document based on its type ID.
+ * A criterion that matches a document based on its type identifier.
  *
  * Supported operators:
  * - EQ: matches against one document type ID
  */
-class DocumentTypeId extends Criterion implements CriterionInterface
+class DocumentTypeIdentifier extends Criterion implements CriterionInterface
 {
     /**
      * @internal
      *
-     * Creates a new DocumentTypeId criterion.
+     * Creates a new DocumentTypeIdentifier criterion.
      *
      * @throws \InvalidArgumentException
      *
-     * @param int|string $value One document Id that must be matched.
+     * @param int|string $value One document identifier that must be matched.
      */
     public function __construct($value)
     {

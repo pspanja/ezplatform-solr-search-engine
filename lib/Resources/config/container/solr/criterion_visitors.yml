@@ -1,6 +1,6 @@
 parameters:
     # Common - internal
-    ezpublish.search.solr.query.common.internal.criterion_visitor.document_type_id.class: EzSystems\EzPlatformSolrSearchEngine\Query\Common\CriterionVisitor\Internal\DocumentTypeId
+    ezpublish.search.solr.query.common.internal.criterion_visitor.document_type_identifier.class: EzSystems\EzPlatformSolrSearchEngine\Query\Common\CriterionVisitor\Internal\DocumentTypeIdentifier
     ezpublish.search.solr.query.common.internal.criterion_visitor.indexed_always_available.class: EzSystems\EzPlatformSolrSearchEngine\Query\Common\CriterionVisitor\Internal\IndexedAlwaysAvailable
     ezpublish.search.solr.query.common.internal.criterion_visitor.indexed_language_code.class: EzSystems\EzPlatformSolrSearchEngine\Query\Common\CriterionVisitor\Internal\IndexedLanguageCode
     ezpublish.search.solr.query.common.internal.criterion_visitor.indexed_main_translation.class: EzSystems\EzPlatformSolrSearchEngine\Query\Common\CriterionVisitor\Internal\IndexedMainTranslation
@@ -56,8 +56,8 @@ parameters:
 
 services:
     # Common for Content and Location search - internal
-    ezpublish.search.solr.query.common.internal.criterion_visitor.document_type_id:
-        class: %ezpublish.search.solr.query.common.internal.criterion_visitor.document_type_id.class%
+    ezpublish.search.solr.query.common.internal.criterion_visitor.document_type_identifier:
+        class: %ezpublish.search.solr.query.common.internal.criterion_visitor.document_type_identifier.class%
         tags:
             - {name: ezpublish.search.solr.query.content.criterion_visitor}
             - {name: ezpublish.search.solr.query.location.criterion_visitor}

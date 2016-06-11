@@ -2,16 +2,16 @@
 
 namespace EzSystems\EzPlatformSolrSearchEngine\Query\Common\CriterionVisitor\Internal;
 
-use EzSystems\EzPlatformSolrSearchEngine\Values\Query\Criterion\DocumentTypeId as DocumentTypeIdCriterion;
+use EzSystems\EzPlatformSolrSearchEngine\Values\Query\Criterion\DocumentTypeIdentifier as DocumentTypeIdentifierCriterion;
 use EzSystems\EzPlatformSolrSearchEngine\Query\CriterionVisitor;
 use eZ\Publish\API\Repository\Values\Content\Query\Criterion;
 use eZ\Publish\API\Repository\Values\Content\Query\Criterion\Operator;
 
-class DocumentTypeId extends CriterionVisitor
+class DocumentTypeIdentifier extends CriterionVisitor
 {
     public function canVisit(Criterion $criterion)
     {
-        return $criterion instanceof DocumentTypeIdCriterion && $criterion->operator === Operator::EQ;
+        return $criterion instanceof DocumentTypeIdentifierCriterion && $criterion->operator === Operator::EQ;
     }
 
     public function visit(Criterion $criterion, CriterionVisitor $subVisitor = null)

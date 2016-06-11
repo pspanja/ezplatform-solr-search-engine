@@ -14,5 +14,5 @@ class Document extends SPIDocument
      *
      * @var string
      */
-    public $documentTypeId;
+    public $documentTypeIdentifier;
 }

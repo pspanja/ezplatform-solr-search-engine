@@ -111,7 +111,7 @@ class NativeDocumentMapper implements DocumentMapper
                 $translationLocationDocuments[] = new Document(
                     array(
                         'id' => $this->generateLocationDocumentId($location->id, $languageCode),
-                        'documentTypeId' => self::DOCUMENT_TYPE_IDENTIFIER_LOCATION,
+                        'documentTypeIdentifier' => self::DOCUMENT_TYPE_IDENTIFIER_LOCATION,
                         'fields' => array_merge(
                             $blockFields,
                             $locationFieldsMap[$location->id],
@@ -129,7 +129,7 @@ class NativeDocumentMapper implements DocumentMapper
             $blocks[] = new Block(
                 array(
                     'id' => $this->generateContentDocumentId($contentInfo->id, $languageCode),
-                    'documentTypeId' => self::DOCUMENT_TYPE_IDENTIFIER_CONTENT,
+                    'documentTypeIdentifier' => self::DOCUMENT_TYPE_IDENTIFIER_CONTENT,
                     'languageCode' => $languageCode,
                     'alwaysAvailable' => $alwaysAvailable,
                     'isMainTranslation' => $isMainTranslation,
