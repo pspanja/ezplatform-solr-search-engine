@@ -2,12 +2,11 @@
 
 namespace EzSystems\EzPlatformSolrSearchEngine\Gateway;
 
-use EzSystems\EzPlatformSolrSearchEngine\Values\Block;
-use EzSystems\EzPlatformSolrSearchEngine\Values\Document;
 use EzSystems\EzPlatformSolrSearchEngine\FieldValueMapper;
 use eZ\Publish\Core\Search\Common\FieldNameGenerator;
 use eZ\Publish\SPI\Search\Field;
 use eZ\Publish\SPI\Search\FieldType;
+use eZ\Publish\SPI\Search\Document;
 use XMLWriter;
 
 /**
@@ -41,7 +40,7 @@ class UpdateSerializer
     /**
      * Create update XML for the given array of $documents.
      *
-     * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Document[] $documents
+     * @param \eZ\Publish\SPI\Search\Document[] $documents
      *
      * @return string
      */
@@ -52,6 +51,10 @@ class UpdateSerializer
         $xmlWriter->startElement('add');
 
         foreach ($documents as $document) {
+            if (empty($document->documents)) {
+                $document->documents[] = $this->getNestedDummyDocument($document->id);
+            }
+
             $this->writeDocument($xmlWriter, $document);
         }
 
@@ -77,17 +80,8 @@ class UpdateSerializer
             $this->writeField($xmlWriter, $field);
         }
 
-        if ($document instanceof Block) {
-            if (empty($document->documents)) {
-                $this->writeDocument(
-                    $xmlWriter,
-                    $this->getNestedDummyDocument($document->id)
-                );
-            }
-
-            foreach ($document->documents as $subDocument) {
-                $this->writeDocument($xmlWriter, $subDocument);
-            }
+        foreach ($document->documents as $subDocument) {
+            $this->writeDocument($xmlWriter, $subDocument);
         }
 
         $xmlWriter->endElement();

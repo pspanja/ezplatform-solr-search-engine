@@ -62,7 +62,7 @@ abstract class Gateway
     /**
      * Indexes given $documents in the given $endpoint.
      *
-     * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Document[] $documents
+     * @param \eZ\Publish\SPI\Search\Document[] $documents
      * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Endpoint $endpoint
      */
     abstract public function bulkIndexDocuments(array $documents, Endpoint $endpoint);
