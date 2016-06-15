@@ -1,0 +1,27 @@
+<?xml version = '1.0' encoding = 'utf-8'?>
+<phpunit backupGlobals="false"
+         backupStaticAttributes="false"
+         bootstrap="tests/bootstrap.php"
+         processIsolation="false"
+         convertErrorsToExceptions="true"
+         convertNoticesToExceptions="true"
+         convertWarningsToExceptions="true"
+         syntaxCheck="true"
+         colors="true">
+    <php>
+        <env name="setupFactory" value="EzSystems\EzPlatformSolrSearchEngine\Tests\SetupFactory\LegacySetupFactory" />
+        <env name="solrServer" value="http://localhost:8983/" />
+        <env name="CORES_SETUP" value="dedicated" />
+    </php>
+    <testsuites>
+        <testsuite name="EzSystems\EzPlatformSolrSearchEngine">
+            <file>tests/integration/TranslationFallbackTest.php</file>
+        </testsuite>
+    </testsuites>
+    <filter>
+        <whitelist>
+            <directory suffix=".php">bundle</directory>
+            <directory suffix=".php">lib</directory>
+        </whitelist>
+    </filter>
+</phpunit>

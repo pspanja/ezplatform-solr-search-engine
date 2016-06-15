@@ -165,6 +165,10 @@ class LegacySetupFactory extends CoreLegacySetupFactory
                 return 'multicore_dedicated.yml';
             case SearchServiceTranslationLanguageFallbackTest::SETUP_SHARED:
                 return 'multicore_shared.yml';
+            case SearchServiceTranslationLanguageFallbackTest::SETUP_SHARED_2:
+                return 'multicore_shared_2.yml';
+            case SearchServiceTranslationLanguageFallbackTest::SETUP_SHARED_3:
+                return 'multicore_shared_3.yml';
             case SearchServiceTranslationLanguageFallbackTest::SETUP_SINGLE:
                 return 'single_core.yml';
         }

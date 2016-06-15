@@ -7,7 +7,8 @@
          syntaxCheck="true">
     <testsuites>
         <testsuite name="Solr search engine tests">
-            <directory suffix="Test.php">./tests/</directory>
+            <directory suffix="Test.php">./tests/bundle</directory>
+            <directory suffix="Test.php">./tests/lib</directory>
         </testsuite>
     </testsuites>
     <filter>
