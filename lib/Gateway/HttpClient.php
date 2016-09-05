@@ -10,6 +10,8 @@
  */
 namespace EzSystems\EzPlatformSolrSearchEngine\Gateway;
 
+use EzSystems\EzPlatformSolrSearchEngine\Values\Endpoint;
+
 /**
  * Interface for Http Client implementations.
  */
@@ -21,7 +23,7 @@ interface HttpClient
      * Returns the result from the remote server.
      *
      * @param string $method
-     * @param \EzSystems\EzPlatformSolrSearchEngine\Gateway\Endpoint $endpoint
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Endpoint $endpoint
      * @param string $path
      * @param \EzSystems\EzPlatformSolrSearchEngine\Gateway\Message $message
      *

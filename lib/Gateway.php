@@ -11,6 +11,7 @@
 namespace EzSystems\EzPlatformSolrSearchEngine;
 
 use eZ\Publish\API\Repository\Values\Content\Query;
+use EzSystems\EzPlatformSolrSearchEngine\Values\Endpoint;
 
 /**
  * The Content Search Gateway provides the implementation for one database to
@@ -22,45 +23,64 @@ abstract class Gateway
      * Returns search hits for the given query.
      *
      * @param \eZ\Publish\API\Repository\Values\Content\Query $query
-     * @param array $fieldFilters - a map of filters for the returned fields.
-     *        Currently supported: <code>array("languages" => array(<language1>,..))</code>.
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Endpoint $entryEndpoint
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Endpoint[] $targetEndpoints
      *
      * @return mixed
      */
-    abstract public function findContent(Query $query, array $fieldFilters = array());
+    abstract public function findContent(
+        Query $query,
+        Endpoint $entryEndpoint,
+        array $targetEndpoints
+    );
 
     /**
      * Returns search hits for the given query.
      *
      * @param \eZ\Publish\API\Repository\Values\Content\Query $query
-     * @param array $fieldFilters - a map of filters for the returned fields.
-     *        Currently supported: <code>array("languages" => array(<language1>,..))</code>.
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Endpoint $entryEndpoint
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Endpoint[] $targetEndpoints
      *
      * @return mixed
      */
-    abstract public function findLocations(Query $query, array $fieldFilters = array());
+    abstract public function findLocations(
+        Query $query,
+        Endpoint $entryEndpoint,
+        array $targetEndpoints
+    );
 
     /**
-     * Indexes an array of documents.
+     * Returns search hits for the given array of Solr query parameters.
      *
-     * Documents are given as an array of the array of documents. The array of documents
-     * holds documents for all translations of the particular entity.
+     * @param array $parameters
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Endpoint $entryEndpoint
      *
-     * @param \eZ\Publish\SPI\Search\Document[][] $documents
+     * @return mixed
      */
-    abstract public function bulkIndexDocuments(array $documents);
+    abstract public function rawFind(array $parameters, Endpoint $entryEndpoint);
+
+    /**
+     * Indexes given $documents in the given $endpoint.
+     *
+     * @param \eZ\Publish\SPI\Search\Document[] $documents
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Endpoint $endpoint
+     */
+    abstract public function bulkIndexDocuments(array $documents, Endpoint $endpoint);
 
     /**
      * Deletes documents by the given $query.
      *
      * @param string $query
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Endpoint[] $endpoints
      */
-    abstract public function deleteByQuery($query);
+    abstract public function deleteByQuery($query, array $endpoints);
 
     /**
      * Purges all contents from the index.
+     *
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Endpoint[] $endpoints
      */
-    abstract public function purgeIndex();
+    abstract public function purgeIndex(array $endpoints);
 
     /**
      * Commits the data to the Solr index, making it available for search.
@@ -69,7 +89,8 @@ abstract class Gateway
      * is actually written to the stable storage, it is only made available for search.
      * Passing true will also write the data to the safe storage, ensuring durability.
      *
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Endpoint[] $endpoints
      * @param bool $flush
      */
-    abstract public function commit($flush = false);
+    abstract public function commit(array $endpoints, $flush = false);
 }

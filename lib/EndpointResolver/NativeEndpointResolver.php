@@ -8,16 +8,22 @@
  *
  * @version //autogentag//
  */
-namespace EzSystems\EzPlatformSolrSearchEngine\Gateway\EndpointResolver;
+namespace EzSystems\EzPlatformSolrSearchEngine\EndpointResolver;
 
-use EzSystems\EzPlatformSolrSearchEngine\Gateway\EndpointResolver;
+use EzSystems\EzPlatformSolrSearchEngine\EndpointRegistry;
+use EzSystems\EzPlatformSolrSearchEngine\EndpointResolver;
 use RuntimeException;
 
 /**
- * NativeEndpointResolver provides Solr endpoints for a Content translations.
+ * NativeEndpointResolver provides Solr endpoints for Content translations.
  */
 class NativeEndpointResolver implements EndpointResolver
 {
+    /**
+     * @var \EzSystems\EzPlatformSolrSearchEngine\EndpointRegistry
+     */
+    private $endpointRegistry;
+
     /**
      * Holds an array of Solr entry endpoint names.
      *
@@ -57,12 +63,14 @@ class NativeEndpointResolver implements EndpointResolver
     /**
      * Create from Endpoint names.
      *
+     * @param \EzSystems\EzPlatformSolrSearchEngine\EndpointRegistry $endpointRegistry
      * @param string[] $entryEndpoints
      * @param string[] $endpointMap
      * @param null|string $defaultEndpoint
      * @param null|string $mainLanguagesEndpoint
      */
     public function __construct(
+        EndpointRegistry $endpointRegistry,
         array $entryEndpoints = array(),
         array $endpointMap = array(),
         $defaultEndpoint = null,
@@ -72,6 +80,7 @@ class NativeEndpointResolver implements EndpointResolver
         $this->endpointMap = $endpointMap;
         $this->defaultEndpoint = $defaultEndpoint;
         $this->mainLanguagesEndpoint = $mainLanguagesEndpoint;
+        $this->endpointRegistry = $endpointRegistry;
     }
 
     public function getEntryEndpoint()
@@ -80,17 +89,23 @@ class NativeEndpointResolver implements EndpointResolver
             throw new RuntimeException('Not entry endpoints defined');
         }
 
-        return reset($this->entryEndpoints);
+        return $this->endpointRegistry->getEndpoint(
+            reset($this->entryEndpoints)
+        );
     }
 
     public function getIndexingTarget($languageCode)
     {
         if (isset($this->endpointMap[$languageCode])) {
-            return $this->endpointMap[$languageCode];
+            return $this->endpointRegistry->getEndpoint(
+                $this->endpointMap[$languageCode]
+            );
         }
 
         if (isset($this->defaultEndpoint)) {
-            return $this->defaultEndpoint;
+            return $this->endpointRegistry->getEndpoint(
+                $this->defaultEndpoint
+            );
         }
 
         throw new RuntimeException(
@@ -98,9 +113,16 @@ class NativeEndpointResolver implements EndpointResolver
         );
     }
 
+    public function hasMainLanguagesEndpoint()
+    {
+        return $this->mainLanguagesEndpoint !== null;
+    }
+
     public function getMainLanguagesEndpoint()
     {
-        return $this->mainLanguagesEndpoint;
+        return $this->endpointRegistry->getEndpoint(
+            $this->mainLanguagesEndpoint
+        );
     }
 
     public function getSearchTargets(array $languageSettings)
@@ -141,7 +163,7 @@ class NativeEndpointResolver implements EndpointResolver
             throw new RuntimeException('No endpoints defined for given language settings');
         }
 
-        return array_keys($targetSet);
+        return $this->internalGetEndpoints(array_keys($targetSet));
     }
 
     public function getEndpoints()
@@ -160,6 +182,17 @@ class NativeEndpointResolver implements EndpointResolver
             throw new RuntimeException('No endpoints defined');
         }
 
-        return array_keys($endpointSet);
+        return $this->internalGetEndpoints(array_keys($endpointSet));
+    }
+
+    private function internalGetEndpoints(array $endpointNames)
+    {
+        $endpoints = [];
+
+        foreach ($endpointNames as $endpointName) {
+            $endpoints[] = $this->endpointRegistry->getEndpoint($endpointName);
+        }
+
+        return $endpoints;
     }
 }

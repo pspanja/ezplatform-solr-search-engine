@@ -10,16 +10,12 @@
  */
 namespace EzSystems\EzPlatformSolrSearchEngine\Gateway;
 
+use EzSystems\EzPlatformSolrSearchEngine\Values\Endpoint;
 use EzSystems\EzPlatformSolrSearchEngine\Gateway;
-use eZ\Publish\API\Repository\Values\Content\Query;
-use eZ\Publish\Core\Search\Common\FieldNameGenerator;
 use EzSystems\EzPlatformSolrSearchEngine\Query\QueryConverter;
-use EzSystems\EzPlatformSolrSearchEngine\FieldValueMapper;
-use RuntimeException;
-use XMLWriter;
-use eZ\Publish\SPI\Search\Field;
-use eZ\Publish\SPI\Search\Document;
+use eZ\Publish\API\Repository\Values\Content\Query;
 use eZ\Publish\SPI\Search\FieldType;
+use RuntimeException;
 
 /**
  * The Content Search Gateway provides the implementation for one database to
@@ -33,18 +29,6 @@ class Native extends Gateway
      * @var HttpClient
      */
     protected $client;
-
-    /**
-     * @var \EzSystems\EzPlatformSolrSearchEngine\Gateway\EndpointResolver
-     */
-    protected $endpointResolver;
-
-    /**
-     * Endpoint registry service.
-     *
-     * @var \EzSystems\EzPlatformSolrSearchEngine\Gateway\EndpointRegistry
-     */
-    protected $endpointRegistry;
 
     /**
      * Content Query converter.
@@ -61,105 +45,75 @@ class Native extends Gateway
     protected $locationQueryConverter;
 
     /**
-     * Field value mapper.
-     *
-     * @var FieldValueMapper
+     * @var \EzSystems\EzPlatformSolrSearchEngine\Gateway\UpdateSerializer
      */
-    protected $fieldValueMapper;
-
-    /**
-     * Field name generator.
-     *
-     * @var FieldNameGenerator
-     */
-    protected $nameGenerator;
+    protected $updateSerializer;
 
     /**
      * Construct from HTTP client.
      *
      * @param HttpClient $client
-     * @param \EzSystems\EzPlatformSolrSearchEngine\Gateway\EndpointResolver $endpointResolver
-     * @param \EzSystems\EzPlatformSolrSearchEngine\Gateway\EndpointRegistry $endpointRegistry
      * @param \EzSystems\EzPlatformSolrSearchEngine\Query\QueryConverter $contentQueryConverter
      * @param \EzSystems\EzPlatformSolrSearchEngine\Query\QueryConverter $locationQueryConverter
-     * @param FieldValueMapper $fieldValueMapper
-     * @param FieldNameGenerator $nameGenerator
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Gateway\UpdateSerializer $updateSerializer
      */
     public function __construct(
         HttpClient $client,
-        EndpointResolver $endpointResolver,
-        EndpointRegistry $endpointRegistry,
         QueryConverter $contentQueryConverter,
         QueryConverter $locationQueryConverter,
-        FieldValueMapper $fieldValueMapper,
-        FieldNameGenerator $nameGenerator
+        UpdateSerializer $updateSerializer
     ) {
         $this->client = $client;
-        $this->endpointResolver = $endpointResolver;
-        $this->endpointRegistry = $endpointRegistry;
         $this->contentQueryConverter = $contentQueryConverter;
         $this->locationQueryConverter = $locationQueryConverter;
-        $this->fieldValueMapper = $fieldValueMapper;
-        $this->nameGenerator = $nameGenerator;
+        $this->updateSerializer = $updateSerializer;
     }
 
     /**
      * Returns search hits for the given query.
      *
      * @param \eZ\Publish\API\Repository\Values\Content\Query $query
-     * @param array $languageSettings - a map of filters for the returned fields.
-     *        Currently supported: <code>array("languages" => array(<language1>,..))</code>.
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Endpoint $entryEndpoint
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Endpoint[] $targetEndpoints
      *
      * @return mixed
      */
-    public function findContent(Query $query, array $languageSettings = array())
+    public function findContent(Query $query, Endpoint $entryEndpoint, array $targetEndpoints)
     {
-        $parameters = $this->contentQueryConverter->convert($query);
+        $parameters = $this->contentQueryConverter->convert($query, $targetEndpoints);
 
-        return $this->internalFind($parameters, $languageSettings);
+        return $this->rawFind($parameters, $entryEndpoint);
     }
 
     /**
      * Returns search hits for the given query.
      *
      * @param \eZ\Publish\API\Repository\Values\Content\Query $query
-     * @param array $languageSettings - a map of filters for the returned fields.
-     *        Currently supported: <code>array("languages" => array(<language1>,..))</code>.
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Endpoint $entryEndpoint
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Endpoint[] $targetEndpoints
      *
      * @return mixed
      */
-    public function findLocations(Query $query, array $languageSettings = array())
+    public function findLocations(Query $query, Endpoint $entryEndpoint, array $targetEndpoints)
     {
-        $parameters = $this->locationQueryConverter->convert($query);
+        $parameters = $this->locationQueryConverter->convert($query, $targetEndpoints);
 
-        return $this->internalFind($parameters, $languageSettings);
+        return $this->rawFind($parameters, $entryEndpoint);
     }
 
     /**
      * Returns search hits for the given array of Solr query parameters.
      *
      * @param array $parameters
-     * @param array $languageSettings - a map of filters for the returned fields.
-     *        Currently supported: <code>array("languages" => array(<language1>,..))</code>.
+     * @param \EzSystems\EzPlatformSolrSearchEngine\Values\Endpoint $entryEndpoint
      *
      * @return mixed
      */
-    protected function internalFind(array $parameters, array $languageSettings = array())
+    public function rawFind(array $parameters, Endpoint $entryEndpoint)
     {
-        $searchTargets = $this->getSearchTargets($languageSettings);
-        if (!empty($searchTargets)) {
-            $parameters['shards'] = $searchTargets;
-        }
-
         $queryString = $this->generateQueryString($parameters);
 
-        $response = $this->client->request(
-            'GET',
-            $this->endpointRegistry->getEndpoint(
-                $this->endpointResolver->getEntryEndpoint()
-            ),
-            "/select?{$queryString}"
-        );
+        $response = $this->client->request('GET', $entryEndpoint, "/select?{$queryString}" );
 
         // @todo: Error handling?
         $result = json_decode($response->body);
@@ -192,119 +146,9 @@ class Native extends Gateway
         );
     }
 
-    /**
-     * Returns search targets for given language settings.
-     *
-     * @param array $languageSettings
-     *
-     * @return string
-     */
-    protected function getSearchTargets($languageSettings)
+    public function bulkIndexDocuments(array $documents, Endpoint $endpoint)
     {
-        $shards = array();
-        $endpoints = $this->endpointResolver->getSearchTargets($languageSettings);
-
-        if (!empty($endpoints)) {
-            foreach ($endpoints as $endpoint) {
-                $shards[] = $this->endpointRegistry->getEndpoint($endpoint)->getIdentifier();
-            }
-        }
-
-        return implode(',', $shards);
-    }
-
-    /**
-     * Indexes an array of documents.
-     *
-     * Documents are given as an array of the array of documents. The array of documents
-     * holds documents for all translations of the particular entity.
-     *
-     * Notes:
-     * - Does not force a commit on solr, depends on solr config, use {@commit} if you need that.
-     * - On large amounts of data make sure to iterate with several calls to this function with a limited
-     *   set of documents, amount you have memory for depends on server, size of documents, & PHP version.
-     *
-     * @param \eZ\Publish\SPI\Search\Document[][] $documents
-     */
-    public function bulkIndexDocuments(array $documents)
-    {
-        $documentMap = array();
-        $mainTranslationsEndpoint = $this->endpointResolver->getMainLanguagesEndpoint();
-        $mainTranslationsDocuments = array();
-
-        foreach ($documents as $translationDocuments) {
-            foreach ($translationDocuments as $document) {
-                $documentMap[$document->languageCode][] = $document;
-
-                if ($mainTranslationsEndpoint !== null && $document->isMainTranslation) {
-                    $mainTranslationsDocuments[] = $this->getMainTranslationDocument($document);
-                }
-            }
-        }
-
-        foreach ($documentMap as $languageCode => $translationDocuments) {
-            $this->doBulkIndexDocuments(
-                $this->endpointRegistry->getEndpoint(
-                    $this->endpointResolver->getIndexingTarget($languageCode)
-                ),
-                $translationDocuments
-            );
-        }
-
-        if (!empty($mainTranslationsDocuments)) {
-            $this->doBulkIndexDocuments(
-                $this->endpointRegistry->getEndpoint($mainTranslationsEndpoint),
-                $mainTranslationsDocuments
-            );
-        }
-    }
-
-    /**
-     * Returns version of the $document to be indexed in the always available core.
-     *
-     * @param \eZ\Publish\SPI\Search\Document $document
-     *
-     * @return \eZ\Publish\SPI\Search\Document
-     */
-    protected function getMainTranslationDocument(Document $document)
-    {
-        // Clone to prevent mutation
-        $document = clone $document;
-        $subDocuments = array();
-
-        $document->id .= 'mt';
-        $document->fields[] = new Field(
-            'meta_indexed_main_translation',
-            true,
-            new FieldType\BooleanField()
-        );
-
-        foreach ($document->documents as $subDocument) {
-            // Clone to prevent mutation
-            $subDocument = clone $subDocument;
-
-            $subDocument->id .= 'mt';
-            $subDocument->fields[] = new Field(
-                'meta_indexed_main_translation',
-                true,
-                new FieldType\BooleanField()
-            );
-
-            $subDocuments[] = $subDocument;
-        }
-
-        $document->documents = $subDocuments;
-
-        return $document;
-    }
-
-    /**
-     * @param \EzSystems\EzPlatformSolrSearchEngine\Gateway\Endpoint $endpoint
-     * @param \eZ\Publish\SPI\Search\Document[] $documents
-     */
-    protected function doBulkIndexDocuments(Endpoint $endpoint, array $documents)
-    {
-        $updates = $this->createUpdates($documents);
+        $updates = $this->updateSerializer->serialize($documents);
         $result = $this->client->request(
             'POST',
             $endpoint,
@@ -324,19 +168,12 @@ class Native extends Gateway
         }
     }
 
-    /**
-     * Deletes documents by the given $query.
-     *
-     * @param string $query
-     */
-    public function deleteByQuery($query)
+    public function deleteByQuery($query, array $endpoints)
     {
-        $endpoints = $this->endpointResolver->getEndpoints();
-
-        foreach ($endpoints as $endpointName) {
+        foreach ($endpoints as $endpoint) {
             $this->client->request(
                 'POST',
-                $this->endpointRegistry->getEndpoint($endpointName),
+                $endpoint,
                 '/update?wt=json',
                 new Message(
                     array(
@@ -348,19 +185,10 @@ class Native extends Gateway
         }
     }
 
-    /**
-     * @todo implement purging for document type
-     *
-     * Purges all contents from the index
-     */
-    public function purgeIndex()
+    public function purgeIndex(array $endpoints)
     {
-        $endpoints = $this->endpointResolver->getEndpoints();
-
-        foreach ($endpoints as $endpointName) {
-            $this->purgeEndpoint(
-                $this->endpointRegistry->getEndpoint($endpointName)
-            );
+        foreach ($endpoints as $endpoint) {
+            $this->purgeEndpoint($endpoint);
         }
     }
 
@@ -384,25 +212,14 @@ class Native extends Gateway
         );
     }
 
-    /**
-     * Commits the data to the Solr index, making it available for search.
-     *
-     * This will perform Solr 'soft commit', which means there is no guarantee that data
-     * is actually written to the stable storage, it is only made available for search.
-     * Passing true will also write the data to the safe storage, ensuring durability.
-     *
-     * @param bool $flush
-     */
-    public function commit($flush = false)
+    public function commit(array $endpoints, $flush = false)
     {
-        $payload = $flush ?
-            '<commit/>' :
-            '<commit softCommit="true"/>';
+        $payload = $flush ? '<commit/>' : '<commit softCommit="true"/>';
 
-        foreach ($this->endpointResolver->getEndpoints() as $endpointName) {
+        foreach ($endpoints as $endpoint) {
             $result = $this->client->request(
                 'POST',
-                $this->endpointRegistry->getEndpoint($endpointName),
+                $endpoint,
                 '/update',
                 new Message(
                     array(
@@ -418,103 +235,6 @@ class Native extends Gateway
                     $result->headers['status'] . var_export($result, true)
                 );
             }
-        }
-    }
-
-    /**
-     * Create document(s) update XML.
-     *
-     * @param \eZ\Publish\SPI\Search\Document[] $documents
-     *
-     * @return string
-     */
-    protected function createUpdates(array $documents)
-    {
-        $xmlWriter = new XMLWriter();
-        $xmlWriter->openMemory();
-        $xmlWriter->startElement('add');
-
-        foreach ($documents as $document) {
-            // Index dummy nested document when there are no other nested documents.
-            // This is done in order to avoid the situation when previous standalone document is
-            // being re-indexed as a block-joined set of documents, or vice-versa.
-            // Enforcing document block in all cases ensures correct overwriting (updating) and
-            // avoiding multiple documents with the same ID.
-            if (empty($document->documents)) {
-                $document->documents[] = $this->getDummyDocument($document->id);
-            }
-            $this->writeDocument($xmlWriter, $document);
-        }
-
-        $xmlWriter->endElement();
-
-        return $xmlWriter->outputMemory(true);
-    }
-
-    protected function writeDocument(XMLWriter $xmlWriter, Document $document)
-    {
-        $xmlWriter->startElement('doc');
-
-        $this->writeField(
-            $xmlWriter,
-            new Field(
-                'id',
-                $document->id,
-                new FieldType\IdentifierField()
-            )
-        );
-
-        foreach ($document->fields as $field) {
-            $this->writeField($xmlWriter, $field);
-        }
-
-        foreach ($document->documents as $subDocument) {
-            $this->writeDocument($xmlWriter, $subDocument);
-        }
-
-        $xmlWriter->endElement();
-    }
-
-    /**
-     * Returns a 'dummy' document.
-     *
-     * This is intended to be indexed as nested document of Content, in order to enforce
-     * document block when Content does not have other nested documents (Locations).
-     * Not intended to be returned as a search result.
-     *
-     * For more info see:
-     * @link http://grokbase.com/t/lucene/solr-user/14chqr73nv/converting-to-parent-child-block-indexing
-     * @link https://issues.apache.org/jira/browse/SOLR-5211
-     *
-     * @param string $id
-     * @return \eZ\Publish\SPI\Search\Document
-     */
-    protected function getDummyDocument($id)
-    {
-        return new Document(
-            array(
-                'id' => $id . '_nested_dummy',
-                'fields' => array(
-                    new Field(
-                        'document_type',
-                        'nested_dummy',
-                        new FieldType\IdentifierField()
-                    ),
-                ),
-            )
-        );
-    }
-
-    protected function writeField(XMLWriter $xmlWriter, Field $field)
-    {
-        foreach ((array)$this->fieldValueMapper->map($field) as $value) {
-            $xmlWriter->startElement('field');
-            $xmlWriter->writeAttribute(
-                'name',
-                $this->nameGenerator->getTypedName($field->name, $field->type)
-            );
-            $xmlWriter->text($value);
-            $xmlWriter->endElement();
         }
     }
 }

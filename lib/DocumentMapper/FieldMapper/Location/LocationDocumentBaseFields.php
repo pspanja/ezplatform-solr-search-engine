@@ -51,11 +51,6 @@ class LocationDocumentBaseFields extends LocationMapper
                 new FieldType\IdentifierField()
             ),
             new Field(
-                'document_type',
-                DocumentMapper::DOCUMENT_TYPE_IDENTIFIER_LOCATION,
-                new FieldType\IdentifierField()
-            ),
-            new Field(
                 'priority',
                 $location->priority,
                 new FieldType\IntegerField()

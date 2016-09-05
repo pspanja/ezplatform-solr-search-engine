@@ -10,6 +10,7 @@
  */
 namespace EzSystems\EzPlatformSolrSearchEngine;
 
+use EzSystems\EzPlatformSolrSearchEngine\EndpointResolver;
 use eZ\Publish\SPI\Persistence\Content;
 use eZ\Publish\SPI\Persistence\Content\Location;
 use eZ\Publish\SPI\Persistence\Content\Handler as ContentHandler;
@@ -79,6 +80,16 @@ class Handler implements SearchHandlerInterface
     protected $coreFilter;
 
     /**
+     * @var \EzSystems\EzPlatformSolrSearchEngine\EndpointResolver
+     */
+    protected $endpointResolver;
+
+    /**
+     * @var \EzSystems\EzPlatformSolrSearchEngine\DocumentIndexer
+     */
+    protected $documentIndexer;
+
+    /**
      * Creates a new content handler.
      *
      * @param \EzSystems\EzPlatformSolrSearchEngine\Gateway $gateway
@@ -86,19 +97,26 @@ class Handler implements SearchHandlerInterface
      * @param \EzSystems\EzPlatformSolrSearchEngine\DocumentMapper $mapper
      * @param \EzSystems\EzPlatformSolrSearchEngine\ResultExtractor $resultExtractor
      * @param \EzSystems\EzPlatformSolrSearchEngine\CoreFilter $coreFilter
+     * @param \EzSystems\EzPlatformSolrSearchEngine\EndpointResolver $endpointResolver
+     *
+     * @param \EzSystems\EzPlatformSolrSearchEngine\DocumentIndexer $documentIndexer
      */
     public function __construct(
         Gateway $gateway,
         ContentHandler $contentHandler,
         DocumentMapper $mapper,
         ResultExtractor $resultExtractor,
-        CoreFilter $coreFilter
+        CoreFilter $coreFilter,
+        EndpointResolver $endpointResolver,
+        DocumentIndexer $documentIndexer
     ) {
         $this->gateway = $gateway;
         $this->contentHandler = $contentHandler;
         $this->mapper = $mapper;
         $this->resultExtractor = $resultExtractor;
         $this->coreFilter = $coreFilter;
+        $this->endpointResolver = $endpointResolver;
+        $this->documentIndexer = $documentIndexer;
     }
 
     /**
@@ -126,8 +144,11 @@ class Handler implements SearchHandlerInterface
             DocumentMapper::DOCUMENT_TYPE_IDENTIFIER_CONTENT
         );
 
+        $entryEndpoint = $this->endpointResolver->getEntryEndpoint();
+        $targetEndpoints = $this->endpointResolver->getSearchTargets($fieldFilters);
+
         return $this->resultExtractor->extract(
-            $this->gateway->findContent($query, $fieldFilters)
+            $this->gateway->findContent($query, $entryEndpoint, $targetEndpoints)
         );
     }
 
@@ -160,8 +181,11 @@ class Handler implements SearchHandlerInterface
             DocumentMapper::DOCUMENT_TYPE_IDENTIFIER_CONTENT
         );
 
+        $entryEndpoint = $this->endpointResolver->getEntryEndpoint();
+        $targetEndpoints = $this->endpointResolver->getSearchTargets($fieldFilters);
+
         $result = $this->resultExtractor->extract(
-            $this->gateway->findContent($query, $fieldFilters)
+            $this->gateway->findContent($query, $entryEndpoint, $targetEndpoints)
         );
 
         if (!$result->totalCount) {
@@ -196,8 +220,11 @@ class Handler implements SearchHandlerInterface
             DocumentMapper::DOCUMENT_TYPE_IDENTIFIER_LOCATION
         );
 
+        $entryEndpoint = $this->endpointResolver->getEntryEndpoint();
+        $targetEndpoints = $this->endpointResolver->getSearchTargets($fieldFilters);
+
         return $this->resultExtractor->extract(
-            $this->gateway->findLocations($query, $fieldFilters)
+            $this->gateway->findLocations($query, $entryEndpoint, $targetEndpoints)
         );
     }
 
@@ -221,7 +248,7 @@ class Handler implements SearchHandlerInterface
      */
     public function indexContent(Content $content)
     {
-        $this->gateway->bulkIndexDocuments(array($this->mapper->mapContentBlock($content)));
+        $this->bulkIndexContent(array($content));
     }
 
     /**
@@ -236,22 +263,14 @@ class Handler implements SearchHandlerInterface
      *       However it is not added to an official SPI interface yet as we anticipate adding a bulkIndexDocument
      *       using eZ\Publish\SPI\Search\Document instead of bulkIndexContent based on Content objects. However
      *       that won't be added until we have several stable or close to stable advance search engines to make
-     *       sure we match the features of these. 
+     *       sure we match the features of these.
      *       See also {@see Solr\Content\Search\Gateway\Native::bulkIndexContent} for further Solr specific info.
      *
      * @param \eZ\Publish\SPI\Persistence\Content[] $contentObjects
      */
     public function bulkIndexContent(array $contentObjects)
     {
-        $documents = array();
-
-        foreach ($contentObjects as $content) {
-            $documents[] = $this->mapper->mapContentBlock($content);
-        }
-
-        if (!empty($documents)) {
-            $this->gateway->bulkIndexDocuments($documents);
-        }
+        $this->documentIndexer->bulkIndexContent($contentObjects);
     }
 
     /**
@@ -273,9 +292,10 @@ class Handler implements SearchHandlerInterface
      */
     public function deleteContent($contentId, $versionId = null)
     {
+        $endpoints = $this->endpointResolver->getEndpoints();
         $idPrefix = $this->mapper->generateContentDocumentId($contentId);
 
-        $this->gateway->deleteByQuery("_root_:{$idPrefix}*");
+        $this->gateway->deleteByQuery("_root_:{$idPrefix}*", $endpoints);
     }
 
     /**
@@ -286,9 +306,10 @@ class Handler implements SearchHandlerInterface
      */
     public function deleteLocation($locationId, $contentId)
     {
+        $endpoints = $this->endpointResolver->getEndpoints();
         $idPrefix = $this->mapper->generateContentDocumentId($contentId);
 
-        $this->gateway->deleteByQuery("_root_:{$idPrefix}*");
+        $this->gateway->deleteByQuery("_root_:{$idPrefix}*", $endpoints);
 
         // TODO it seems this part of location deletion (not last location) misses integration tests
         try {
@@ -308,7 +329,9 @@ class Handler implements SearchHandlerInterface
      */
     public function purgeIndex()
     {
-        $this->gateway->purgeIndex();
+        $endpoints = $this->endpointResolver->getEndpoints();
+
+        $this->gateway->purgeIndex($endpoints);
     }
 
     /**
@@ -319,11 +342,13 @@ class Handler implements SearchHandlerInterface
      * Passing true will also write the data to the safe storage, ensuring durability.
      *
      * @see bulkIndexContent() For info on why this is not on an SPI Interface yet.
-     * 
+     *
      * @param bool $flush
      */
     public function commit($flush = false)
     {
-        $this->gateway->commit($flush);
+        $endpoints = $this->endpointResolver->getEndpoints();
+
+        $this->gateway->commit($endpoints, $flush);
     }
 }

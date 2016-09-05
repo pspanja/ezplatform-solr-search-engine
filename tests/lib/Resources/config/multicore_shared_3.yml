@@ -16,11 +16,13 @@ parameters:
     ezpublish.solr.endpoint.class: EzSystems\EzPlatformSolrSearchEngine\Values\Endpoint
 
     ezpublish.search.solr.entry_endpoints:
-          - endpoint1
+          - endpoint0
     ezpublish.search.solr.cluster_endpoints:
-          eng-GB: endpoint3
+          eng-GB: endpoint1
+          ger-DE: endpoint1
+          por-PT: endpoint1
     ezpublish.search.solr.default_endpoint: endpoint2
-    ezpublish.search.solr.main_translations_endpoint: endpoint0
+    ezpublish.search.solr.main_translations_endpoint: endpoint1
 
 services:
     ezpublish.cache_pool.spi.cache.decorator:

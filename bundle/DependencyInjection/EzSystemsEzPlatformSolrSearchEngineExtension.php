@@ -52,14 +52,14 @@ class EzSystemsEzPlatformSolrSearchEngineExtension extends Extension
      *
      * @var string
      */
-    const ENDPOINT_RESOLVER_ID = 'ezpublish.search.solr.gateway.endpoint_resolver.native';
+    const ENDPOINT_RESOLVER_ID = 'ezpublish.search.solr.endpoint_resolver.native';
 
     /**
      * Endpoint class.
      *
      * @var string
      */
-    const ENDPOINT_CLASS = 'EzSystems\\EzPlatformSolrSearchEngine\\Gateway\\Endpoint';
+    const ENDPOINT_CLASS = 'EzSystems\\EzPlatformSolrSearchEngine\\Endpoint';
 
     /**
      * Endpoint service tag.

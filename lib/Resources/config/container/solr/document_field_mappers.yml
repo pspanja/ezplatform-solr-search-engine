@@ -1,8 +1,6 @@
 parameters:
     ezpublish.search.solr.document_field_mapper.block.block_documents_base_content_fields.class: EzSystems\EzPlatformSolrSearchEngine\DocumentMapper\FieldMapper\Content\BlockDocumentsBaseContentFields
     ezpublish.search.solr.document_field_mapper.block_translation.block_documents_content_fields.class: EzSystems\EzPlatformSolrSearchEngine\DocumentMapper\FieldMapper\ContentTranslation\BlockDocumentsContentFields
-    ezpublish.search.solr.document_field_mapper.block_translation.block_documents_meta_fields.class: EzSystems\EzPlatformSolrSearchEngine\DocumentMapper\FieldMapper\ContentTranslation\BlockDocumentsMetaFields
-    ezpublish.search.solr.document_field_mapper.content.content_document_base_fields.class: EzSystems\EzPlatformSolrSearchEngine\DocumentMapper\FieldMapper\Content\ContentDocumentBaseFields
     ezpublish.search.solr.document_field_mapper.content.content_document_location_fields.class: EzSystems\EzPlatformSolrSearchEngine\DocumentMapper\FieldMapper\Content\ContentDocumentLocationFields
     ezpublish.search.solr.document_field_mapper.content_translation.content_document_fulltext_fields.class: EzSystems\EzPlatformSolrSearchEngine\DocumentMapper\FieldMapper\ContentTranslation\ContentDocumentFulltextFields
     ezpublish.search.solr.document_field_mapper.location.location_document_base_fields.class: EzSystems\EzPlatformSolrSearchEngine\DocumentMapper\FieldMapper\Location\LocationDocumentBaseFields
@@ -26,16 +24,6 @@ services:
             - '@ezpublish.search.common.field_name_generator'
         tags:
             - {name: ezpublish.search.solr.document_field_mapper.block_translation}
-
-    ezpublish.search.solr.document_field_mapper.block_translation.block_documents_meta_fields:
-        class: '%ezpublish.search.solr.document_field_mapper.block_translation.block_documents_meta_fields.class%'
-        tags:
-            - {name: ezpublish.search.solr.document_field_mapper.block_translation}
-
-    ezpublish.search.solr.document_field_mapper.content.content_document_base_fields:
-        class: '%ezpublish.search.solr.document_field_mapper.content.content_document_base_fields.class%'
-        tags:
-            - {name: ezpublish.search.solr.document_field_mapper.content}
 
     ezpublish.search.solr.document_field_mapper.content.content_document_location_fields:
         class: '%ezpublish.search.solr.document_field_mapper.content.content_document_location_fields.class%'

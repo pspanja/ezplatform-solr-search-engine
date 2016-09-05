@@ -13,7 +13,7 @@ parameters:
     ignored_storage_files:
         -
             var/ezdemo_site/storage/images/design/plain-site/172-2-eng-US/eZ-Publish-Demo-Design-without-demo-content1.png
-    ezpublish.solr.endpoint.class: EzSystems\EzPlatformSolrSearchEngine\Gateway\Endpoint
+    ezpublish.solr.endpoint.class: EzSystems\EzPlatformSolrSearchEngine\Values\Endpoint
 
     ezpublish.search.solr.entry_endpoints:
           - endpoint0
@@ -36,6 +36,6 @@ services:
                 host: localhost
                 port: 8983
                 path: /solr
-                core: collection1
+                core: core0
         tags:
             - {name: ezpublish.search.solr.endpoint, alias: endpoint0}

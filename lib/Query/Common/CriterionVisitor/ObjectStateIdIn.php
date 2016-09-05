@@ -51,7 +51,6 @@ class ObjectStateIdIn extends CriterionVisitor
                 ' OR ',
                 array_map(
                     function ($value) {
-                        // TODO this should not be multiple???
                         return 'content_object_state_ids_mid:"' . $value . '"';
                     },
                     $criterion->value
